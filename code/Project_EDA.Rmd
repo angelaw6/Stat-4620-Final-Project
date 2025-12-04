@@ -1,0 +1,33 @@
+---
+title: 'Part 1: EDA'
+author: "Angela Wei, Aditya Desai"
+date: "2025-12-04"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+
+```
+
+First, introduce the dataset and perform a careful EDA of the data. Consider the following
+questions to help motivate your EDA:
+• Are there any problems with the data?
+• What kind of variables do you have?
+• Is there any missing data?
+• Does there appear to be potentially problematic collinearity amongst the predictor variables?
+Can you detect early signs of what variables are likely to be important in predicting the
+response?
+• What are the key figures or numerical summaries that describe the most important aspects
+of the data?
+• Does your EDA suggest to you what modeling approaches you should aim to try?
+Consider these questions and any others that come to mind as you familiarize yourself with the
+data.
+
+# EDA
+
+```{r}
+
+```
+
