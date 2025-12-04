@@ -7,9 +7,15 @@ output: pdf_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+
+library(readr)
 library(ggplot2)
 
+training_df <- read_csv("../data/train.csv")
+
 ```
+
+EDA Instructions:
 
 First, introduce the dataset and perform a careful EDA of the data. Consider the following
 questions to help motivate your EDA:
@@ -28,6 +34,6 @@ data.
 # EDA
 
 ```{r}
-
+head(training_df)
 ```
 
