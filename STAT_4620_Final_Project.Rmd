@@ -176,7 +176,7 @@ sensitivity_knn
 specificity_knn
 ```
 
-# PLS
+## PLS
 ```{r}
 # Setup PLS Data
 train_pls <- train
@@ -236,7 +236,7 @@ sensitivity_pls
 specificity_pls
 ```
 
-# Ridge Regression
+## Ridge Regression
 ```{r}
 # Setup Ridge Data
 train_ridge <- train
@@ -304,6 +304,7 @@ sensitivity_ridge
 specificity_ridge
 ```
 
+## LASSO Regression
 ```{r}
 #=============================
 # Setup LASSO Data
@@ -381,3 +382,123 @@ specificity_lasso
 
 ```
 
+## Bagging
+```{r}
+library(randomForest)
+library(caret)
+
+#=============================
+# 1. Prepare Data
+#=============================
+
+train_bag <- train
+test_bag  <- test
+
+# Response must be factor
+train_bag$Bankrupt. <- factor(train_bag$Bankrupt., levels = c("0","1"))
+test_bag$Bankrupt.  <- factor(test_bag$Bankrupt., levels = c("0","1"))
+
+# Predictor columns
+predictor_cols <- setdiff(colnames(train_bag), c("Bankrupt.", "Unnamed..0"))
+
+X_train <- train_bag[, predictor_cols]
+y_train <- train_bag$Bankrupt.
+
+X_test  <- test_bag[, predictor_cols]
+y_test  <- test_bag$Bankrupt.
+
+#=============================
+# 2. Fit Bagging Model
+#   Bagging = Random Forest with mtry = all predictors
+#=============================
+
+set.seed(123)
+
+bag_model <- randomForest(
+  x = X_train,
+  y = y_train,
+  ntree = 500,                      # many trees → stable
+  mtry = ncol(X_train),             # <-- key for bagging
+  importance = TRUE
+)
+
+#=============================
+# 3. Predict on Test Data
+#=============================
+
+bag_prob <- predict(bag_model, X_test, type = "prob")[,2]
+
+# threshold 0.5 (can adjust later)
+bag_pred <- factor(ifelse(bag_prob > 0.5, "1", "0"), levels = c("0","1"))
+
+#=============================
+# 4. Evaluate Model
+#=============================
+
+conf_mat_bag <- confusionMatrix(
+  bag_pred,
+  y_test,
+  positive = "1"
+)
+
+conf_mat_bag
+
+# Extract metrics
+accuracy_bag     <- conf_mat_bag$overall["Accuracy"]
+sensitivity_bag  <- conf_mat_bag$byClass["Sensitivity"]
+specificity_bag  <- conf_mat_bag$byClass["Specificity"]
+
+accuracy_bag
+sensitivity_bag
+specificity_bag
+
+#=============================
+# 5. Variable Importance Plot (optional)
+#=============================
+
+varImpPlot(bag_model, main = "Bagging Variable Importance")
+
+```
+
+## Random Forest
+```{r}
+library(randomForest)
+library(caret)
+
+train_rf <- train
+test_rf  <- test
+
+train_rf$Bankrupt. <- factor(train_rf$Bankrupt., levels = c("0","1"))
+test_rf$Bankrupt.  <- factor(test_rf$Bankrupt., levels = c("0","1"))
+
+predictor_cols <- setdiff(colnames(train_rf), c("Bankrupt.", "Unnamed..0"))
+
+X_train <- train_rf[, predictor_cols]
+y_train <- train_rf$Bankrupt.
+
+X_test  <- test_rf[, predictor_cols]
+y_test  <- test_rf$Bankrupt.
+
+# --- FIXED: compute sampsize correctly ---
+class_counts <- table(y_train)
+minority_size <- min(class_counts)
+sampsize_vec <- rep(minority_size, length(class_counts))
+
+# Fit balanced RF
+rf_model <- randomForest(
+  x = X_train,
+  y = y_train,
+  ntree = 500,
+  mtry = floor(sqrt(ncol(X_train))),
+  sampsize = sampsize_vec,   # <-- FIXED
+  importance = TRUE
+)
+
+# Predictions
+rf_prob <- predict(rf_model, X_test, type = "prob")[,2]
+rf_pred <- factor(ifelse(rf_prob > 0.5, "1", "0"), levels = c("0","1"))
+
+conf_mat_rf <- confusionMatrix(rf_pred, y_test, positive = "1")
+conf_mat_rf
+
+```
