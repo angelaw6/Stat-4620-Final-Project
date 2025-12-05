@@ -15,6 +15,7 @@ library(rpart)
 library(rpart.plot)
 library(caret)
 library(pROC)
+library(class)
 ```
 
 ```{r}
@@ -94,5 +95,65 @@ rpart.plot(
 
 ## KNN
 ```{r}
+# Setup Classification Data
+train_knn <- train
+test_knn <- test
 
+train_knn$Bankrupt. <- factor(train_knn$Bankrupt.)
+test_knn$Bankrupt. <- factor(test_knn$Bankrupt.)
+
+predictor_cols <- setdiff(colnames(train), c("Bankrupt.", "Unnamed..0"))
 ```
+
+```{r}
+# Standardize Predictors
+preproc <- preProcess(train[, predictor_cols], method = c("center", "scale"))
+
+train_scaled <- predict(preproc, train_knn[, predictor_cols])
+test_scaled <- predict(preproc, test_knn[, predictor_cols])
+```
+
+```{r}
+# Find Best K Value
+K_values <- seq(1, 51, by = 2)
+acc_results <- c()
+
+for (k in K_values) {
+  knn_pred <- knn(
+    train = train_scaled,
+    test = test_scaled,
+    cl = train_knn$Bankrupt.,
+    k = k,
+    prob = TRUE
+  )
+  
+  acc <- mean(knn_pred == test_knn$Bankrupt.)
+  acc_results <- c(acc_results, acc)
+}
+
+best_k <- K_values[which.max(acc_results)]
+best_k
+```
+
+```{r}
+# Fit KNN Model and 
+knn_pred <- knn(
+  train = train_scaled,
+  test  = test_scaled,
+  cl = train_knn$Bankrupt.,
+  k = best_k,
+  prob = TRUE
+)
+
+conf_mat <- confusionMatrix(knn_pred, test_knn$Bankrupt.)
+conf_mat
+
+accuracy <- conf_mat$overall["Accuracy"]
+sensitivity <- conf_mat$byClass["Sensitivity"]
+specificity <- conf_mat$byClass["Specificity"]
+
+accuracy
+sensitivity
+specificity
+```
+
