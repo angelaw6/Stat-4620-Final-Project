@@ -16,6 +16,7 @@ library(rpart.plot)
 library(caret)
 library(pROC)
 library(class)
+library(pls)
 ```
 
 ```{r}
@@ -93,9 +94,26 @@ rpart.plot(
 )
 ```
 
+```{r}
+# Predict on Test Data
+pred_probs_class <- predict(cart_pruned, newdata = test, type = "prob")[,2]
+pred_class_class <- factor(ifelse(pred_probs_class > 0.5, "1", "0"), levels = c("0","1"))
+
+conf_mat_class <- confusionMatrix(pred_class_class, test_class$Bankrupt.)
+conf_mat_class
+
+accuracy_class <- conf_mat_class$overall["Accuracy"]
+sensitivity_class <- conf_mat_class$byClass["Sensitivity"]
+specificity_class <- conf_mat_class$byClass["Specificity"]
+
+accuracy_class
+sensitivity_class
+specificity_class
+```
+
 ## KNN
 ```{r}
-# Setup Classification Data
+# Setup KNN Data
 train_knn <- train
 test_knn <- test
 
@@ -145,15 +163,75 @@ knn_pred <- knn(
   prob = TRUE
 )
 
-conf_mat <- confusionMatrix(knn_pred, test_knn$Bankrupt.)
-conf_mat
+conf_mat_knn <- confusionMatrix(knn_pred, test_knn$Bankrupt.)
+conf_mat_knn
 
-accuracy <- conf_mat$overall["Accuracy"]
-sensitivity <- conf_mat$byClass["Sensitivity"]
-specificity <- conf_mat$byClass["Specificity"]
+accuracy_knn <- conf_mat_knn$overall["Accuracy"]
+sensitivity_knn <- conf_mat_knn$byClass["Sensitivity"]
+specificity_knn <- conf_mat_knn$byClass["Specificity"]
 
-accuracy
-sensitivity
-specificity
+accuracy_knn
+sensitivity_knn
+specificity_knn
+```
+
+# PLS
+```{r}
+# Setup PLS Data
+train_pls <- train
+test_pls <- test
+
+train_pls$Bankrupt. <- factor(train_pls$Bankrupt.)
+test_pls$Bankrupt. <- factor(test_pls$Bankrupt.)
+```
+
+```{r}
+# Clean Up Dataset
+predictor_cols <- setdiff(colnames(train_pls), c("Bankrupt.", "Unnamed..0"))
+
+X_train_pls <- train_pls[, predictor_cols]
+X_test_pls <- test_pls[, predictor_cols]
+
+y_train_pls <- as.numeric(as.character(train_pls$Bankrupt.))
+y_test_pls <- as.numeric(as.character(test_pls$Bankrupt.))
+```
+
+```{r}
+# Fit PLS Model and Find Optimal Components
+pls_fit <- plsr(
+  y_train_pls ~ as.matrix(X_train_pls),
+  scale = TRUE,
+  validation = "CV",
+  segments = 10
+)
+
+plot(RMSEP(pls_fit), main = "PLS CV - RMSEP vs Components")
+
+opt_M <- which.min(RMSEP(pls_fit)$val[1,1,])
+opt_M
+```
+
+```{r}
+# Predict on Test Data With Optimal Components
+pls_pred_probs <- predict(pls_fit, newdata = as.matrix(X_test_pls), ncomp = opt_M)
+
+pls_pred_probs <-pls_pred_probs[,1,1]
+
+pls_pred_class <- ifelse(pls_pred_probs > .5, "1", "0")
+pls_pred_class<- factor(pls_pred_class, levels = c("0", "1"))
+```
+
+```{r}
+# Evaluate Performance
+conf_mat_pls <- confusionMatrix(pls_pred_class, test_pls$Bankrupt.)
+conf_mat_pls
+
+accuracy_pls <- conf_mat_pls$overall["Accuracy"]
+sensitivity_pls <- conf_mat_pls$byClass["Sensitivity"]
+specificity_pls <- conf_mat_pls$byClass["Specificity"]
+
+accuracy_pls
+sensitivity_pls
+specificity_pls
 ```
 
