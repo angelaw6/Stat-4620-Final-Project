@@ -17,6 +17,7 @@ library(caret)
 library(pROC)
 library(class)
 library(pls)
+library(glmnet)
 ```
 
 ```{r}
@@ -233,5 +234,150 @@ specificity_pls <- conf_mat_pls$byClass["Specificity"]
 accuracy_pls
 sensitivity_pls
 specificity_pls
+```
+
+# Ridge Regression
+```{r}
+# Setup Ridge Data
+train_ridge <- train
+test_ridge <- test
+
+y_train_ridge <- as.numeric(as.character(train_ridge$Bankrupt.))
+y_test_ridge <- as.numeric(as.character(test_ridge$Bankrupt.))
+```
+
+```{r}
+# Cleanup Columns
+predictor_cols_ridge <- setdiff(colnames(train_ridge), c("Bankrupt.", "Unnamed..0"))
+
+X_train_ridge <- as.matrix(train_ridge[, predictor_cols_ridge])
+X_test_ridge <- as.matrix(test_ridge[, predictor_cols_ridge])
+```
+
+```{r}
+# Fit Ridge Logistic Regression
+ridge_cv <- cv.glmnet( 
+  x = X_train_ridge, 
+  y = y_train_ridge, 
+  alpha = 0, 
+  family = "binomial", 
+  standardize = TRUE, 
+  type.measure = "deviance"
+)
+
+best_lambda <- ridge_cv$lambda.min
+best_lambda
+```
+
+```{r}
+# Fit Final Ridge Model
+ridge_fit <- glmnet(
+  x = X_train_ridge,
+  y = y_train_ridge,
+  alpha = 0,
+  family = "binomial",
+  lambda = best_lambda,
+  standardize = TRUE
+)
+```
+
+```{r}
+# Predict on Test Data
+ridge_prob <- predict(ridge_fit, newx = X_test_ridge, type = "response")
+
+ridge_pred <- ifelse(ridge_prob > 0.5, "1", "0")
+ridge_pred <- factor(ridge_pred, levels = c("0", "1"))
+```
+
+```{r}
+# Evaluate Ridge Performance
+y_test_factor <- factor(test_ridge$Bankrupt., levels = c("0", "1"))
+conf_mat_ridge <- confusionMatrix(ridge_pred, y_test_factor)
+conf_mat_ridge
+
+accuracy_ridge <- conf_mat_ridge$overall["Accuracy"]
+sensitivity_ridge <- conf_mat_ridge$byClass["Sensitivity"]
+specificity_ridge <- conf_mat_ridge$byClass["Specificity"]
+
+accuracy_ridge
+sensitivity_ridge
+specificity_ridge
+```
+
+```{r}
+#=============================
+# Setup LASSO Data
+#=============================
+
+train_lasso <- train
+test_lasso  <- test
+
+y_train_lasso <- as.numeric(as.character(train_lasso$Bankrupt.))
+y_test_lasso  <- as.numeric(as.character(test_lasso$Bankrupt.))
+
+predictor_cols_lasso <- setdiff(colnames(train_lasso), c("Bankrupt.", "Unnamed..0"))
+
+X_train_lasso <- as.matrix(train_lasso[, predictor_cols_lasso])
+X_test_lasso  <- as.matrix(test_lasso[, predictor_cols_lasso])
+
+
+#=============================
+# Fit LASSO Logistic Regression
+#=============================
+
+lasso_cv <- cv.glmnet(
+  x = X_train_lasso,
+  y = y_train_lasso,
+  alpha = 1,               # <-- LASSO
+  family = "binomial",
+  standardize = TRUE,
+  type.measure = "deviance"
+)
+
+best_lambda_lasso <- lasso_cv$lambda.min
+best_lambda_lasso
+
+
+#=============================
+# Fit Final LASSO Model
+#=============================
+
+lasso_fit <- glmnet(
+  x = X_train_lasso,
+  y = y_train_lasso,
+  alpha = 1,               # <-- LASSO
+  family = "binomial",
+  lambda = best_lambda_lasso,
+  standardize = TRUE
+)
+
+
+#=============================
+# Predict on Test Data
+#=============================
+
+lasso_prob <- predict(lasso_fit, newx = X_test_lasso, type = "response")
+
+lasso_pred <- ifelse(lasso_prob > 0.5, "1", "0")
+lasso_pred <- factor(lasso_pred, levels = c("0", "1"))
+
+
+#=============================
+# Evaluate LASSO Performance
+#=============================
+
+y_test_factor_lasso <- factor(test_lasso$Bankrupt., levels = c("0", "1"))
+
+conf_mat_lasso <- confusionMatrix(lasso_pred, y_test_factor_lasso)
+conf_mat_lasso
+
+accuracy_lasso    <- conf_mat_lasso$overall["Accuracy"]
+sensitivity_lasso <- conf_mat_lasso$byClass["Sensitivity"]
+specificity_lasso <- conf_mat_lasso$byClass["Specificity"]
+
+accuracy_lasso
+sensitivity_lasso
+specificity_lasso
+
 ```
 
