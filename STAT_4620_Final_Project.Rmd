@@ -528,3 +528,96 @@ specificity_rf
 # Variable Importance Plots
 varImpPlot(rf_model, main = "Random Forest Variable Importance")
 ```
+
+## Compare Ridge, LASSO, Bagging, and Random Forest
+```{r}
+evaluate_model <- function(probabilities, true_labels, threshold = 0.5) {
+  
+  preds <- factor(ifelse(probabilities > threshold, "1", "0"), levels = c("0","1"))
+  
+  cm <- confusionMatrix(preds, true_labels, positive = "1")
+  
+  roc_obj <- roc(true_labels, probabilities)
+  auc_val <- as.numeric(auc(roc_obj)) 
+  
+  tibble(
+    Accuracy = as.numeric(cm$overall["Accuracy"]),
+    Sensitivity = as.numeric(cm$byClass["Sensitivity"]),
+    Specificity = as.numeric(cm$byClass["Specificity"]),
+    Balanced_Accuracy = as.numeric((cm$byClass["Sensitivity"] + cm$byClass["Specificity"]) / 2),
+    AUC = auc_val
+  )
+}
+
+ridge_results <- evaluate_model(ridge_prob, y_test_factor)
+lasso_results <- evaluate_model(lasso_prob, y_test_factor)
+bagging_results <- evaluate_model(bag_prob, y_test_factor)
+rf_results <- evaluate_model(rf_prob, y_test_factor)
+
+comparison_table <- bind_rows(
+  Ridge = ridge_results,
+  LASSO = lasso_results,
+  Bagging = bagging_results,
+  RandomForest = rf_results,
+  .id = "Model"
+)
+
+comparison_table
+```
+
+# Analyze Ridge Model
+```{r}
+ridge_coefs <- coef(ridge_fit)
+
+coef_df <- data.frame(
+  Variable = rownames(ridge_coefs),
+  Coefficient = as.numeric(ridge_coefs)
+)
+
+coef_df <- coef_df %>%
+  filter(Variable != "(Intercept)") %>%
+  mutate(Abs_Coefficient = abs(Coefficient)) %>%
+  arrange(desc(Abs_Coefficient))
+
+head(coef_df, 15)
+
+coef_df_top <- coef_df %>% slice_max(Abs_Coefficient, n = 20)
+
+ggplot(coef_df_top, aes(x = reorder(Variable, Coefficient), y = Coefficient)) +
+  geom_col(fill = "steelblue") +
+  coord_flip() +
+  labs(title = "Top 20 Ridge Coefficients (by Magnitude)",
+       x = "Predictor",
+       y = "Coefficient") +
+  theme_minimal()
+
+ridge_prob_df <- data.frame(
+  Predicted_Prob = as.numeric(ridge_prob),
+  Actual = y_test_factor
+)
+
+ggplot(ridge_prob_df, aes(x = Predicted_Prob, fill = Actual)) +
+  geom_density(alpha = 0.5) +
+  labs(title = "Ridge Predicted Probability Distribution",
+       x = "Predicted Bankruptcy Probability",
+       fill = "Actual Class") +
+  theme_minimal()
+
+ridge_roc <- roc(y_test_factor, ridge_prob)
+plot(ridge_roc, main = "ROC Curve - Ridge Regression")
+auc(ridge_roc)
+
+ridge_pred <- factor(ifelse(ridge_prob > 0.5, "1", "0"), levels = c("0","1"))
+
+conf_mat_ridge <- confusionMatrix(ridge_pred, y_test_factor, positive = "1")
+conf_mat_ridge
+
+accuracy_ridge  <- conf_mat_ridge$overall["Accuracy"]
+sensitivity_ridge <- conf_mat_ridge$byClass["Sensitivity"]
+specificity_ridge <- conf_mat_ridge$byClass["Specificity"]
+
+accuracy_ridge
+sensitivity_ridge
+specificity_ridge
+```
+
