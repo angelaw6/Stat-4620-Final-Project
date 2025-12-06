@@ -18,6 +18,7 @@ library(pROC)
 library(class)
 library(pls)
 library(glmnet)
+library(randomForest)
 ```
 
 ```{r}
@@ -255,18 +256,27 @@ X_test_ridge <- as.matrix(test_ridge[, predictor_cols_ridge])
 ```
 
 ```{r}
+# Balanced Class Weights
+class_counts <- table(train_ridge$Bankrupt.)
+minority_weight <- class_counts["0"] / class_counts["1"]
+
+ridge_weights <- ifelse(train_ridge$Bankrupt. == "1", minority_weight, 1)
+```
+
+```{r}
 # Fit Ridge Logistic Regression
-ridge_cv <- cv.glmnet( 
-  x = X_train_ridge, 
-  y = y_train_ridge, 
-  alpha = 0, 
-  family = "binomial", 
-  standardize = TRUE, 
+ridge_cv <- cv.glmnet(
+  x = X_train_ridge,
+  y = y_train_ridge,
+  alpha = 0,  
+  family = "binomial",
+  standardize = TRUE,
+  weights = ridge_weights,
   type.measure = "deviance"
 )
 
-best_lambda <- ridge_cv$lambda.min
-best_lambda
+best_lambda_ridge <- ridge_cv$lambda.min
+best_lambda_ridge
 ```
 
 ```{r}
@@ -276,8 +286,9 @@ ridge_fit <- glmnet(
   y = y_train_ridge,
   alpha = 0,
   family = "binomial",
-  lambda = best_lambda,
-  standardize = TRUE
+  lambda = best_lambda_ridge,
+  standardize = TRUE,
+  weights = ridge_weights
 )
 ```
 
@@ -306,10 +317,7 @@ specificity_ridge
 
 ## LASSO Regression
 ```{r}
-#=============================
 # Setup LASSO Data
-#=============================
-
 train_lasso <- train
 test_lasso  <- test
 
@@ -320,53 +328,56 @@ predictor_cols_lasso <- setdiff(colnames(train_lasso), c("Bankrupt.", "Unnamed..
 
 X_train_lasso <- as.matrix(train_lasso[, predictor_cols_lasso])
 X_test_lasso  <- as.matrix(test_lasso[, predictor_cols_lasso])
+```
 
+```{r}
+# Balanced Class Weights
+class_counts <- table(train_lasso$Bankrupt.)
+minority_weight <- class_counts["0"] / class_counts["1"]
 
-#=============================
+lasso_weights <- ifelse(train_lasso$Bankrupt. == "1", minority_weight, 1)
+```
+
+```{r}
 # Fit LASSO Logistic Regression
-#=============================
-
 lasso_cv <- cv.glmnet(
   x = X_train_lasso,
   y = y_train_lasso,
-  alpha = 1,               # <-- LASSO
+  alpha = 1,
   family = "binomial",
   standardize = TRUE,
+  weights = lasso_weights, 
   type.measure = "deviance"
 )
 
 best_lambda_lasso <- lasso_cv$lambda.min
 best_lambda_lasso
+```
 
-
-#=============================
-# Fit Final LASSO Model
-#=============================
-
+```{r}
+# Fit Final Lasso Model
 lasso_fit <- glmnet(
   x = X_train_lasso,
   y = y_train_lasso,
-  alpha = 1,               # <-- LASSO
+  alpha = 1,
   family = "binomial",
   lambda = best_lambda_lasso,
-  standardize = TRUE
+  standardize = TRUE,
+  weights = lasso_weights
 )
 
+```
 
-#=============================
+```{r}
 # Predict on Test Data
-#=============================
-
 lasso_prob <- predict(lasso_fit, newx = X_test_lasso, type = "response")
 
 lasso_pred <- ifelse(lasso_prob > 0.5, "1", "0")
 lasso_pred <- factor(lasso_pred, levels = c("0", "1"))
+```
 
-
-#=============================
+```{r}
 # Evaluate LASSO Performance
-#=============================
-
 y_test_factor_lasso <- factor(test_lasso$Bankrupt., levels = c("0", "1"))
 
 conf_mat_lasso <- confusionMatrix(lasso_pred, y_test_factor_lasso)
@@ -384,21 +395,13 @@ specificity_lasso
 
 ## Bagging
 ```{r}
-library(randomForest)
-library(caret)
-
-#=============================
-# 1. Prepare Data
-#=============================
-
+# Setup Bagging Data
 train_bag <- train
 test_bag  <- test
 
-# Response must be factor
 train_bag$Bankrupt. <- factor(train_bag$Bankrupt., levels = c("0","1"))
 test_bag$Bankrupt.  <- factor(test_bag$Bankrupt., levels = c("0","1"))
 
-# Predictor columns
 predictor_cols <- setdiff(colnames(train_bag), c("Bankrupt.", "Unnamed..0"))
 
 X_train <- train_bag[, predictor_cols]
@@ -406,35 +409,34 @@ y_train <- train_bag$Bankrupt.
 
 X_test  <- test_bag[, predictor_cols]
 y_test  <- test_bag$Bankrupt.
+```
 
-#=============================
-# 2. Fit Bagging Model
-#   Bagging = Random Forest with mtry = all predictors
-#=============================
+```{r}
+class_counts <- table(y_train)
+minority_size <- min(class_counts) 
+sampsize_vec <- rep(minority_size, length(class_counts))
+```
 
-set.seed(123)
-
+```{r}
 bag_model <- randomForest(
-  x = X_train,
-  y = y_train,
-  ntree = 500,                      # many trees → stable
-  mtry = ncol(X_train),             # <-- key for bagging
-  importance = TRUE
+x = X_train,
+y = y_train,
+ntree = 500,
+mtry = ncol(X_train), 
+sampsize = sampsize_vec,
+importance = TRUE
 )
+```
 
-#=============================
-# 3. Predict on Test Data
-#=============================
-
+```{r}
+# Predict on Test Data
 bag_prob <- predict(bag_model, X_test, type = "prob")[,2]
 
-# threshold 0.5 (can adjust later)
 bag_pred <- factor(ifelse(bag_prob > 0.5, "1", "0"), levels = c("0","1"))
+```
 
-#=============================
-# 4. Evaluate Model
-#=============================
-
+```{r}
+# Evaluate Model
 conf_mat_bag <- confusionMatrix(
   bag_pred,
   y_test,
@@ -443,7 +445,6 @@ conf_mat_bag <- confusionMatrix(
 
 conf_mat_bag
 
-# Extract metrics
 accuracy_bag     <- conf_mat_bag$overall["Accuracy"]
 sensitivity_bag  <- conf_mat_bag$byClass["Sensitivity"]
 specificity_bag  <- conf_mat_bag$byClass["Specificity"]
@@ -451,25 +452,21 @@ specificity_bag  <- conf_mat_bag$byClass["Specificity"]
 accuracy_bag
 sensitivity_bag
 specificity_bag
+```
 
-#=============================
-# 5. Variable Importance Plot (optional)
-#=============================
-
+```{r}
+# Variable Importance
 varImpPlot(bag_model, main = "Bagging Variable Importance")
-
 ```
 
 ## Random Forest
 ```{r}
-library(randomForest)
-library(caret)
-
+# Setup Random Forest Data
 train_rf <- train
 test_rf  <- test
 
 train_rf$Bankrupt. <- factor(train_rf$Bankrupt., levels = c("0","1"))
-test_rf$Bankrupt.  <- factor(test_rf$Bankrupt., levels = c("0","1"))
+test_rf$Bankrupt.  <- factor(test_rf$Bankrupt.,  levels = c("0","1"))
 
 predictor_cols <- setdiff(colnames(train_rf), c("Bankrupt.", "Unnamed..0"))
 
@@ -478,27 +475,56 @@ y_train <- train_rf$Bankrupt.
 
 X_test  <- test_rf[, predictor_cols]
 y_test  <- test_rf$Bankrupt.
+```
 
-# --- FIXED: compute sampsize correctly ---
+```{r}
+# Balanced Sampling Setup
 class_counts <- table(y_train)
 minority_size <- min(class_counts)
-sampsize_vec <- rep(minority_size, length(class_counts))
 
-# Fit balanced RF
+sampsize_vec <- rep(minority_size, length(class_counts))
+```
+
+```{r}
+# Fit Random Forest
 rf_model <- randomForest(
   x = X_train,
   y = y_train,
   ntree = 500,
   mtry = floor(sqrt(ncol(X_train))),
-  sampsize = sampsize_vec,   # <-- FIXED
+  sampsize = sampsize_vec, 
   importance = TRUE
 )
+```
 
-# Predictions
+```{r}
+# Predict on Test Set
 rf_prob <- predict(rf_model, X_test, type = "prob")[,2]
-rf_pred <- factor(ifelse(rf_prob > 0.5, "1", "0"), levels = c("0","1"))
 
-conf_mat_rf <- confusionMatrix(rf_pred, y_test, positive = "1")
+rf_pred <- factor(ifelse(rf_prob > 0.5, "1", "0"), levels = c("0","1"))
+```
+
+```{r}
+# Confusion Matrix and Metrics
+conf_mat_rf <- confusionMatrix(
+  rf_pred,
+  y_test,
+  positive = "1"
+)
+
 conf_mat_rf
 
+# Extract performance metrics
+accuracy_rf     <- conf_mat_rf$overall["Accuracy"]
+sensitivity_rf  <- conf_mat_rf$byClass["Sensitivity"]
+specificity_rf  <- conf_mat_rf$byClass["Specificity"]
+
+accuracy_rf
+sensitivity_rf
+specificity_rf
+```
+
+```{r}
+# Variable Importance Plots
+varImpPlot(rf_model, main = "Random Forest Variable Importance")
 ```
