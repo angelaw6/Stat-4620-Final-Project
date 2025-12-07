@@ -56,7 +56,7 @@ names(ratio_candidates[ratio_candidates == TRUE])
 names(ratio_candidates[ratio_candidates == FALSE])
 ```
 
-There is no duplicated rows or missing data in the dataset. The response variable is valued only 0 or 1 as it should be and all other 95 variables are numeric variables. None of the variables have negative values or values which wouldn't make sense in context of the variable measurement.
+There is no duplicated rows or missing data in the dataset. The response variable is valued only 0 or 1 as it should be and all other 95 variables are numeric variables. None of the variables have negative values but there are some variables that are rates or ratios that seem to have very high values.
 
 # Variables EDA
 ```{r}
@@ -93,7 +93,6 @@ There are a lot of highly correlated variables with Operatig Gross Margin having
 # Variable correlation to response
 
 ```{r}
-
 # Compute correlation matrix & take out correlations with Bankrupt.
 cor_matrix <- cor(training_df, use = "complete.obs")
 cor_response <- cor_matrix["Bankrupt.", -1]  # named vector
