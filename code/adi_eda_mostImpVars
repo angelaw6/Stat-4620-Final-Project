@@ -1,0 +1,40 @@
+pvals <- sapply(train[ , -which(names(train) %in% c("X","Bankrupt."))], 
+                function(x) {
+                  tryCatch(t.test(x ~ train$Bankrupt.)$p.value, 
+                           error = function(e) NA)
+                })
+
+sort(pvals)[1:15]
+
+
+
+                                Net.Value.Per.Share..A. 
+                                           1.412168e-43 
+                                Net.Value.Per.Share..B. 
+                                           1.445788e-43 
+                                Net.Value.Per.Share..C. 
+                                           8.173172e-43 
+                                       Net.worth.Assets 
+                                           1.813348e-38 
+                                           Debt.ratio.. 
+                                           1.813348e-38 
+                       Operating.profit.Paid.in.capital 
+                                           1.619052e-36 
+                                      Cash.Total.Assets 
+                                           2.514499e-36 
+                    Operating.Profit.Per.Share..Yuan... 
+                                           1.244365e-35 
+               Per.Share.Net.profit.before.tax..Yuan... 
+                                           2.934616e-34 
+                Persistent.EPS.in.the.Last.Four.Seasons 
+                                           3.074175e-34 
+                  Net.profit.before.tax.Paid.in.capital 
+                                           9.496499e-34 
+ROA.C..before.interest.and.depreciation.before.interest 
+                                           9.897180e-28 
+                        Working.Capital.to.Total.Assets 
+                                           3.723790e-26 
+      ROA.B..before.interest.and.depreciation.after.tax 
+                                           6.407999e-26 
+                 ROA.A..before.interest.and...after.tax 
+                                           2.502086e-23 
