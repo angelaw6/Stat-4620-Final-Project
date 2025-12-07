@@ -10,18 +10,12 @@ knitr::opts_chunk$set(echo = TRUE)
 
 library(readr)
 library(ggplot2)
+library(dplyr)
 
 training_df <- read_csv("../data/train.csv")
 
 ```
 
-EDA Instructions:
-
-First, introduce the dataset and perform a careful EDA of the data. Consider the following
-questions to help motivate your EDA:
-• Are there any problems with the data?
-• What kind of variables do you have?
-• Is there any missing data?
 • Does there appear to be potentially problematic collinearity amongst the predictor variables?
 Can you detect early signs of what variables are likely to be important in predicting the
 response?
@@ -31,9 +25,46 @@ of the data?
 Consider these questions and any others that come to mind as you familiarize yourself with the
 data.
 
-# EDA
+# Introducing dataset
 
+This dataset is about predicting whether a company will go bankrupt for not given explanatory variables. The data is collected from Taiwan Economic Journal from 1999-2009 so company bankruptcy is thus defined based on the Taiwan stock exchange. 
+
+The response variable is `Bankrupt.`, a binary classification of bankruptcy status. There are 95 continuous explanatory variables. The predictor variables are some financial ratios, company performance metrics, and more. 
 ```{r}
+# Preview of Dataset
 head(training_df)
+colnames(training_df)
+
+# It seems like the `...1` column is a meaningless automativally generated index value, not seen in the kaggle data description, so I remove it.
+head(training_df$...1)
+training_df <- training_df %>%
+  select(-...1)
 ```
 
+# Data Quality Check
+```{r}
+# Check for duplicated values
+sum(duplicated(training_df))
+
+# Check for missing values
+sum(is.na(training_df))
+
+# Check that the response var. is the only categorical var.
+unique(training_df$Bankrupt.)
+unname(sapply(training_df, class))
+
+# Check for negative values or ratios that are greater than 1
+neg_values <- sapply(training_df,function(x) any(x < 0, na.rm = TRUE))
+sum(neg_values)
+
+ratio_candidates <- sapply(training_df, function(x) all(x >= 0 & x <= 1, na.rm = TRUE))
+names(ratio_candidates[ratio_candidates == TRUE])
+names(ratio_candidates[ratio_candidates == FALSE])
+```
+
+There is no duplicated rows or missing data in the dataset. The response variable is valued only 0 or 1 as it should be and all other 95 variables are numeric variables. None of the variables have negative values or values which wouldn't make sense in context of the variable measurement.
+
+
+
+
+# 
