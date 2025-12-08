@@ -619,3 +619,75 @@ sensitivity_ridge
 specificity_ridge
 ```
 
+```{r}
+# Ridge Clibration Curve
+library(dplyr)
+library(ggplot2)
+
+cal_data <- data.frame(
+  prob = as.numeric(ridge_prob),
+  actual = as.numeric(as.character(y_test_factor))
+)
+
+cal_data$bin <- cut(cal_data$prob, breaks = seq(0, 1, by = 0.1), include.lowest = TRUE)
+
+cal_summary <- cal_data %>%
+  group_by(bin) %>%
+  summarize(
+    mean_pred = mean(prob),
+    actual_rate = mean(actual)
+  )
+
+ggplot(cal_summary, aes(x = mean_pred, y = actual_rate)) +
+  geom_point(size = 3, color = "steelblue") +
+  geom_line(color = "steelblue") +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
+  labs(
+    title = "Calibration Curve: Ridge Regression",
+    x = "Average Predicted Probability",
+    y = "Observed Bankruptcy Rate"
+  ) +
+  theme_minimal()
+
+```
+
+```{r}
+# Ridge Lift Chart
+library(gains)
+
+lift_data <- gains(
+  actual = as.numeric(as.character(y_test_factor)),
+  predicted = as.numeric(ridge_prob),
+  groups = 10
+)
+
+lift_df <- data.frame(
+  depth = lift_data$depth,
+  lift = lift_data$lift
+)
+
+ggplot(lift_df, aes(x = depth, y = lift)) +
+  geom_line(color = "darkred", size = 1.2) +
+  geom_point(size = 2) +
+  labs(
+    title = "Lift Chart: Ridge Regression",
+    x = "Percentile of Sample",
+    y = "Lift"
+  ) +
+  theme_minimal()
+
+```
+
+```{r}
+# Ridge Top 10 Risky Companies
+top_risk <- data.frame(
+  Index = 1:length(ridge_prob),
+  Predicted_Prob = as.numeric(ridge_prob),
+  Actual = y_test_factor
+) %>%
+  arrange(desc(Predicted_Prob)) %>%
+  head(10)
+
+top_risk
+```
+
