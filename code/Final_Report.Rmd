@@ -97,17 +97,17 @@ test <- read.csv("../data/test.csv")
 
 ### Investigated Models
 
-Prior to our exploratory data analysis, we planned to train and test our data using three method: KNN, PLS, and Classification/Regression Trees. Although, after exploring our data further and attempting to run these models, a few key problems came up as to why these don't work well to our training data: 
+Prior to our exploratory data analysis, we planned to train and test our data using three method: KNN, PLS, and Classification/Regression Trees. However, after analyzing the structure of our data and evaluating initial model performance, several issues became clear: 
 
-Extreme Class Imbalance: ???
+Extreme Class Imbalance: Bankruptcy cases make up only a small fraction of the dataset, causing these methods ot default to predicting the majority class.
 
-High-Dimensional Numeric Ratios: ??
+High-Dimensional Numeric Ratios: The dataset contains many correlated financial ratios, which introduces noise and instability, especially harmful for KNN and PLS.
 
-Nonlinear Relationships: ???
+Nonlinear Relationships: The relationship between financial predictors and bankruptcy risk is highly nonlinear, limiting the effectiveness of simple tree models and linear projections.
 
-Overlapping Distributions: ??
+Overlapping Distributions: Bankrupt and non-bankrupt have very similar predictor values, making it difficult for distance-based or linear-separation methods to distinguish between classes.
 
-Due to the problems listed above, we decided to explore models that would adapt better to the issues we saw in our training set. Those models include Ridge Regression, LASSO, Bagging, and Random Forest. We will further explore those models and their outputs below.
+Given these challenges, we shifted our focus to models that are more robust to imbalance, multicollinearity, and complex strucutre. Specifically, we explored Ridge Regression, LASSO, Bagging, and Random Forest, which provided significantly stronger perforance and more stable predictions. We examine these models and their results in the following sections.
 
 #### Ridge Regression
 ```{r, include = FALSE}
@@ -175,6 +175,8 @@ sensitivity_ridge
 specificity_ridge
 ```
 
+Definition and Formula: ???
+
 The first model that we decided to explore was Ridge Regression. This is useful when we have highly correlated features, high-dimensional predictors, lots of noise, and class imbalance. All of those are characteristics that were noticed in our data exploration. Thus, this felt like a beneficial model to explore.
 
 When we ran this model on our test set of data, these were the results:
@@ -182,6 +184,8 @@ When we ran this model on our test set of data, these were the results:
 ```{r}
 conf_mat_ridge$table
 ```
+
+Following that, we got certain metrics such as accuracy, sensitivity, specificity, and AUC. Our accuracy of .8578 indicates that are model got about 86% of the test set correctly classified. Additionally, our sensitivity was .8625, which shows that about 86% of actual bankrupt companies were identified correctly. Next, with a specificity of .8576 means that 86% of non-bankrupt companies were accurate. Finally, having an AUC of .9319 means that the model is very good at separating the positive and negative classes across all possible probability thresholds.
 
 #### LASSO
 ```{r, include = FALSE}
@@ -249,6 +253,8 @@ sensitivity_lasso
 specificity_lasso
 ```
 
+Definition and Formula: ???
+
 ???
 
 #### Bagging
@@ -305,6 +311,8 @@ accuracy_bag
 sensitivity_bag
 specificity_bag
 ```
+
+Definition and Formula: ???
 
 ???
 
@@ -364,6 +372,8 @@ sensitivity_rf
 specificity_rf
 ```
 
+Definition and Formula: ???
+
 ???
 
 #### Model Comparison
@@ -416,7 +426,7 @@ comparison_table
 
 ### Model Assumptions
 ```{r}
-
+# PUT THESE IN INVESTIGATED MODELS
 ```
 
 ???
