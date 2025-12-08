@@ -97,7 +97,17 @@ test <- read.csv("../data/test.csv")
 
 ### Investigated Models
 
-???
+Prior to our exploratory data analysis, we planned to train and test our data using three method: KNN, PLS, and Classification/Regression Trees. Although, after exploring our data further and attempting to run these models, a few key problems came up as to why these don't work well to our training data: 
+
+Extreme Class Imbalance: ???
+
+High-Dimensional Numeric Ratios: ??
+
+Nonlinear Relationships: ???
+
+Overlapping Distributions: ??
+
+Due to the problems listed above, we decided to explore models that would adapt better to the issues we saw in our training set. Those models include Ridge Regression, LASSO, Bagging, and Random Forest. We will further explore those models and their outputs below.
 
 #### Ridge Regression
 ```{r, include = FALSE}
@@ -165,7 +175,13 @@ sensitivity_ridge
 specificity_ridge
 ```
 
-???
+The first model that we decided to explore was Ridge Regression. This is useful when we have highly correlated features, high-dimensional predictors, lots of noise, and class imbalance. All of those are characteristics that were noticed in our data exploration. Thus, this felt like a beneficial model to explore.
+
+When we ran this model on our test set of data, these were the results:
+
+```{r}
+conf_mat_ridge$table
+```
 
 #### LASSO
 ```{r, include = FALSE}
