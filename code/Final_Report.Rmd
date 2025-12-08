@@ -1,0 +1,418 @@
+<div style="text-align: center;">
+  <h1>Company Bankruptcy Prediction</h1>
+  <h4>Angela Wei, Aditya Desai, Andrew Theiss, and Samuel Gadkar</h4>
+  <h4>December 14th, 2025</h4>
+</div>
+
+<br>
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, include = FALSE}
+# Import Libraries
+library(tidyverse)
+library(rpart)
+library(rpart.plot)
+library(caret)
+library(pROC)
+library(class)
+library(pls)
+library(glmnet)
+library(randomForest)
+library(readr)
+library(ggplot2)
+library(dplyr)
+library(rlang)
+library(gridExtra)
+```
+
+```{r, include = FALSE}
+# Set See and Import Data
+set.seed(4620)
+train <- read.csv("../data/train.csv")
+test <- read.csv("../data/test.csv")
+```
+
+<center>
+## Introduction
+
+???
+
+## Exploratory Data Analysis
+
+???
+
+### Data Problems
+```{r}
+
+```
+
+???
+
+### Variable Types
+```{r}
+
+```
+
+???
+
+### Missing Data
+```{r}
+
+```
+
+???
+
+### Collinearity Issues
+```{r}
+
+```
+
+???
+
+### Potential Important Predictors
+```{r}
+
+```
+
+???
+
+### Key Figures and Numerical Summaries
+```{r}
+
+```
+
+???
+
+### Potential Models
+```{r}
+
+```
+
+???
+
+## Model Analysis
+
+### Investigated Models
+
+???
+
+#### Ridge Regression
+```{r, include = FALSE}
+# Setup Ridge Data
+train_ridge <- train
+test_ridge <- test
+
+y_train_ridge <- as.numeric(as.character(train_ridge$Bankrupt.))
+y_test_ridge <- as.numeric(as.character(test_ridge$Bankrupt.))
+
+# Cleanup Columns
+predictor_cols_ridge <- setdiff(colnames(train_ridge), c("Bankrupt.", "Unnamed..0"))
+
+X_train_ridge <- as.matrix(train_ridge[, predictor_cols_ridge])
+X_test_ridge <- as.matrix(test_ridge[, predictor_cols_ridge])
+
+# Balanced Class Weights
+class_counts <- table(train_ridge$Bankrupt.)
+minority_weight <- class_counts["0"] / class_counts["1"]
+
+ridge_weights <- ifelse(train_ridge$Bankrupt. == "1", minority_weight, 1)
+
+# Fit Ridge Logistic Regression
+ridge_cv <- cv.glmnet(
+  x = X_train_ridge,
+  y = y_train_ridge,
+  alpha = 0,  
+  family = "binomial",
+  standardize = TRUE,
+  weights = ridge_weights,
+  type.measure = "deviance"
+)
+
+best_lambda_ridge <- ridge_cv$lambda.min
+best_lambda_ridge
+
+# Fit Final Ridge Model
+ridge_fit <- glmnet(
+  x = X_train_ridge,
+  y = y_train_ridge,
+  alpha = 0,
+  family = "binomial",
+  lambda = best_lambda_ridge,
+  standardize = TRUE,
+  weights = ridge_weights
+)
+
+# Predict on Test Data
+ridge_prob <- predict(ridge_fit, newx = X_test_ridge, type = "response")
+
+ridge_pred <- ifelse(ridge_prob > 0.5, "1", "0")
+ridge_pred <- factor(ridge_pred, levels = c("0", "1"))
+
+# Evaluate Ridge Performance
+y_test_factor <- factor(test_ridge$Bankrupt., levels = c("0", "1"))
+conf_mat_ridge <- confusionMatrix(ridge_pred, y_test_factor)
+conf_mat_ridge
+
+accuracy_ridge <- conf_mat_ridge$overall["Accuracy"]
+sensitivity_ridge <- conf_mat_ridge$byClass["Sensitivity"]
+specificity_ridge <- conf_mat_ridge$byClass["Specificity"]
+
+accuracy_ridge
+sensitivity_ridge
+specificity_ridge
+```
+
+???
+
+#### LASSO
+```{r, include = FALSE}
+# Setup LASSO Data
+train_lasso <- train
+test_lasso  <- test
+
+y_train_lasso <- as.numeric(as.character(train_lasso$Bankrupt.))
+y_test_lasso  <- as.numeric(as.character(test_lasso$Bankrupt.))
+
+predictor_cols_lasso <- setdiff(colnames(train_lasso), c("Bankrupt.", "Unnamed..0"))
+
+X_train_lasso <- as.matrix(train_lasso[, predictor_cols_lasso])
+X_test_lasso  <- as.matrix(test_lasso[, predictor_cols_lasso])
+
+# Balanced Class Weights
+class_counts <- table(train_lasso$Bankrupt.)
+minority_weight <- class_counts["0"] / class_counts["1"]
+
+lasso_weights <- ifelse(train_lasso$Bankrupt. == "1", minority_weight, 1)
+
+# Fit LASSO Logistic Regression
+lasso_cv <- cv.glmnet(
+  x = X_train_lasso,
+  y = y_train_lasso,
+  alpha = 1,
+  family = "binomial",
+  standardize = TRUE,
+  weights = lasso_weights, 
+  type.measure = "deviance"
+)
+
+best_lambda_lasso <- lasso_cv$lambda.min
+best_lambda_lasso
+
+# Fit Final Lasso Model
+lasso_fit <- glmnet(
+  x = X_train_lasso,
+  y = y_train_lasso,
+  alpha = 1,
+  family = "binomial",
+  lambda = best_lambda_lasso,
+  standardize = TRUE,
+  weights = lasso_weights
+)
+
+# Predict on Test Data
+lasso_prob <- predict(lasso_fit, newx = X_test_lasso, type = "response")
+
+lasso_pred <- ifelse(lasso_prob > 0.5, "1", "0")
+lasso_pred <- factor(lasso_pred, levels = c("0", "1"))
+
+# Evaluate LASSO Performance
+y_test_factor_lasso <- factor(test_lasso$Bankrupt., levels = c("0", "1"))
+
+conf_mat_lasso <- confusionMatrix(lasso_pred, y_test_factor_lasso)
+conf_mat_lasso
+
+accuracy_lasso    <- conf_mat_lasso$overall["Accuracy"]
+sensitivity_lasso <- conf_mat_lasso$byClass["Sensitivity"]
+specificity_lasso <- conf_mat_lasso$byClass["Specificity"]
+
+accuracy_lasso
+sensitivity_lasso
+specificity_lasso
+```
+
+???
+
+#### Bagging
+```{r, include = FALSE}
+# Setup Bagging Data
+train_bag <- train
+test_bag  <- test
+
+train_bag$Bankrupt. <- factor(train_bag$Bankrupt., levels = c("0","1"))
+test_bag$Bankrupt.  <- factor(test_bag$Bankrupt., levels = c("0","1"))
+
+predictor_cols <- setdiff(colnames(train_bag), c("Bankrupt.", "Unnamed..0"))
+
+X_train <- train_bag[, predictor_cols]
+y_train <- train_bag$Bankrupt.
+
+X_test  <- test_bag[, predictor_cols]
+y_test  <- test_bag$Bankrupt.
+
+# Balanced Class Weights
+class_counts <- table(y_train)
+minority_size <- min(class_counts) 
+sampsize_vec <- rep(minority_size, length(class_counts))
+
+# Train Model
+bag_model <- randomForest(
+  x = X_train,
+  y = y_train,
+  ntree = 500,
+  mtry = ncol(X_train), 
+  sampsize = sampsize_vec,
+  importance = TRUE
+)
+
+# Predict on Test Data
+bag_prob <- predict(bag_model, X_test, type = "prob")[,2]
+
+bag_pred <- factor(ifelse(bag_prob > 0.5, "1", "0"), levels = c("0","1"))
+
+# Evaluate Model
+conf_mat_bag <- confusionMatrix(
+  bag_pred,
+  y_test,
+  positive = "1"
+)
+
+conf_mat_bag
+
+accuracy_bag     <- conf_mat_bag$overall["Accuracy"]
+sensitivity_bag  <- conf_mat_bag$byClass["Sensitivity"]
+specificity_bag  <- conf_mat_bag$byClass["Specificity"]
+
+accuracy_bag
+sensitivity_bag
+specificity_bag
+```
+
+???
+
+#### Random Forest
+```{r, include = FALSE}
+# Setup Random Forest Data
+train_rf <- train
+test_rf  <- test
+
+train_rf$Bankrupt. <- factor(train_rf$Bankrupt., levels = c("0","1"))
+test_rf$Bankrupt.  <- factor(test_rf$Bankrupt.,  levels = c("0","1"))
+
+predictor_cols <- setdiff(colnames(train_rf), c("Bankrupt.", "Unnamed..0"))
+
+X_train <- train_rf[, predictor_cols]
+y_train <- train_rf$Bankrupt.
+
+X_test  <- test_rf[, predictor_cols]
+y_test  <- test_rf$Bankrupt.
+
+# Balanced Sampling Setup
+class_counts <- table(y_train)
+minority_size <- min(class_counts)
+
+sampsize_vec <- rep(minority_size, length(class_counts))
+
+# Fit Random Forest
+rf_model <- randomForest(
+  x = X_train,
+  y = y_train,
+  ntree = 500,
+  mtry = floor(sqrt(ncol(X_train))),
+  sampsize = sampsize_vec, 
+  importance = TRUE
+)
+
+# Predict on Test Set
+rf_prob <- predict(rf_model, X_test, type = "prob")[,2]
+
+rf_pred <- factor(ifelse(rf_prob > 0.5, "1", "0"), levels = c("0","1"))
+
+# Confusion Matrix and Metrics
+conf_mat_rf <- confusionMatrix(
+  rf_pred,
+  y_test,
+  positive = "1"
+)
+
+conf_mat_rf
+
+accuracy_rf     <- conf_mat_rf$overall["Accuracy"]
+sensitivity_rf  <- conf_mat_rf$byClass["Sensitivity"]
+specificity_rf  <- conf_mat_rf$byClass["Specificity"]
+
+accuracy_rf
+sensitivity_rf
+specificity_rf
+```
+
+???
+
+#### Model Comparison
+```{r, warning = FALSE, include = FALSE}
+evaluate_model <- function(probabilities, true_labels, threshold = 0.5) {
+  
+  preds <- factor(ifelse(probabilities > threshold, "1", "0"), levels = c("0","1"))
+  
+  cm <- confusionMatrix(preds, true_labels, positive = "1")
+  
+  roc_obj <- roc(true_labels, probabilities)
+  auc_val <- as.numeric(auc(roc_obj)) 
+  
+  tibble(
+    Accuracy = as.numeric(cm$overall["Accuracy"]),
+    Sensitivity = as.numeric(cm$byClass["Sensitivity"]),
+    Specificity = as.numeric(cm$byClass["Specificity"]),
+    Balanced_Accuracy = as.numeric((cm$byClass["Sensitivity"] + cm$byClass["Specificity"]) / 2),
+    AUC = auc_val
+  )
+}
+
+ridge_results <- evaluate_model(ridge_prob, y_test_factor)
+lasso_results <- evaluate_model(lasso_prob, y_test_factor)
+bagging_results <- evaluate_model(bag_prob, y_test_factor)
+rf_results <- evaluate_model(rf_prob, y_test_factor)
+
+comparison_table <- bind_rows(
+  Ridge = ridge_results,
+  LASSO = lasso_results,
+  Bagging = bagging_results,
+  RandomForest = rf_results,
+  .id = "Model"
+)
+```
+
+???
+
+```{r, warning = FALSE, echo = FALSE}
+comparison_table
+```
+
+
+### Description of Final Model
+```{r}
+
+```
+
+???
+
+### Model Assumptions
+```{r}
+
+```
+
+???
+
+### Model Validation
+```{r}
+
+```
+
+???
+
+## Conclusion
+
+???
+</center>
