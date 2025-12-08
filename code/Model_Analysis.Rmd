@@ -224,6 +224,10 @@ conf_mat_pls
 
 accuracy_pls <- conf_mat_pls$overall["Accuracy"]
 sensitivity_pls <- conf_mat_pls$byClass["Sensitivity"]
+```
+
+
+```{r}
 specificity_pls <- conf_mat_pls$byClass["Specificity"]
 
 accuracy_pls
