@@ -24,8 +24,8 @@ library(randomForest)
 ```{r}
 # Setup and Import Data
 set.seed(4620)
-train <- read.csv("data/train.csv")
-test <- read.csv("data/test.csv")
+train <- read.csv("../data/train.csv")
+test <- read.csv("../data/test.csv")
 ```
 
 # Model Analysis
