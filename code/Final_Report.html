@@ -464,26 +464,20 @@ regression but relaxes some of them through its L2 penalty</p>
 between predictors and the log-odds of bankruptcy</li>
 </ol>
 <ol style="list-style-type: lower-alpha">
-<li>Our check: Probability plots show some nonlinear patterns, meaning
-this assumption is not fully met</li>
-</ol>
-<p>???</p>
-<ol start="2" style="list-style-type: lower-alpha">
-<li>Why acceptable: Ridge is robust to mild misspecificiation because
-shrinkage stabilizes coefficients</li>
+<li><p>Our check: Probability plots show some nonlinear patterns,
+meaning this assumption is not fully met</p></li>
+<li><p>Why acceptable: Ridge is robust to mild misspecificiation because
+shrinkage stabilizes coefficients</p></li>
 </ol>
 <ol start="2" style="list-style-type: decimal">
 <li>No perfect multicollinearity: Predictors should ot be perfectly
 correlated</li>
 </ol>
 <ol style="list-style-type: lower-alpha">
-<li>Our check: Many financial ratios are highly correlated</li>
-</ol>
-<p>???</p>
-<ol start="2" style="list-style-type: lower-alpha">
-<li>Why acceptable: This is exactly what Ridge is designed for; L2
+<li><p>Our check: Many financial ratios are highly correlated</p></li>
+<li><p>Why acceptable: This is exactly what Ridge is designed for; L2
 regularization handles multicollinearity by shrinking correlated
-coefficients together</li>
+coefficients together</p></li>
 </ol>
 <ol start="3" style="list-style-type: decimal">
 <li>Independent observations: Each row must represent an independent
@@ -493,18 +487,14 @@ company</li>
 <li>Our check: Firms appear only once, so thi assumption is
 satisfied</li>
 </ol>
-<p>???</p>
 <ol start="4" style="list-style-type: decimal">
 <li>Reasonable class balance: Logistic regression is sensitive to
 imbalance</li>
 </ol>
 <ol style="list-style-type: lower-alpha">
-<li>Our check: The data is extremely imbalanced</li>
-</ol>
-<p>???</p>
-<ol start="2" style="list-style-type: lower-alpha">
-<li>How addressed: We used class weights in the Ridge model to
-compensate</li>
+<li><p>Our check: The data is extremely imbalanced</p></li>
+<li><p>How addressed: We used class weights in the Ridge model to
+compensate</p></li>
 </ol>
 <p>Assumption Summary: Although the dataset violates linearity and
 balance assumptions, Ridge Regression remains appropriate because the L2
@@ -588,23 +578,17 @@ regression, but its L1 penalty adds sparsity and variable selection.</p>
 between predictors and the log-odds of bankruptcy</li>
 </ol>
 <ol style="list-style-type: lower-alpha">
-<li>Check: Probability plots sowed some nonlinear patterns, so this
-assumption is not perfectly met</li>
-</ol>
-<p>???</p>
-<ol start="2" style="list-style-type: lower-alpha">
-<li>Why still acceptable: LASSO’s regularization helps reduce
-overfitting even when the relationship is not perfectly linear</li>
+<li><p>Our check: Probability plots showed some nonlinear patterns, so
+this assumption is not perfectly met</p></li>
+<li><p>Why acceptable: LASSO’s regularization helps reduce overfitting
+even when the relationship is not perfectly linear</p></li>
 </ol>
 <ol start="2" style="list-style-type: decimal">
 <li>No perfect multicollinearity: Predictors should not be perfectly
 correlated</li>
 </ol>
 <ol style="list-style-type: lower-alpha">
-<li>Check: Financial ratios are strongly correlated</li>
-</ol>
-<p>???</p>
-<ol start="2" style="list-style-type: lower-alpha">
+<li><p>Our check: Financial ratios are strongly correlated</p></li>
 <li><p>Issue: LASSO tends to pick one variable from a correlated group
 and discard the rest, which can create instability.</p></li>
 <li><p>Why acceptable: This behavior is actually useful for variable
@@ -614,21 +598,17 @@ selection, and the model still performed well is testing.</p></li>
 <li>Independent observations: Each observation shold be independent</li>
 </ol>
 <ol style="list-style-type: lower-alpha">
-<li>Check: Each company appears once, so this assumption is
+<li>Our check: Each company appears once, so this assumption is
 satisfied</li>
 </ol>
-<p>???</p>
 <ol start="4" style="list-style-type: decimal">
 <li>Class balance: Logistic-based models can struggle with extreme
 imbalance</li>
 </ol>
 <ol style="list-style-type: lower-alpha">
-<li>Check: The dataset is highly imbalanced</li>
-</ol>
-<p>???</p>
-<ol start="2" style="list-style-type: lower-alpha">
-<li>How addressed: Class weights were used to reduce bias toward the
-majority class</li>
+<li><p>Our check: The dataset is highly imbalanced</p></li>
+<li><p>How addressed: Class weights were used to reduce bias toward the
+majority class</p></li>
 </ol>
 <p>Assumption Summary: LASSO does not perfectly satisf linearity or
 balance assumptions, and its variable selection can be unstable under
@@ -702,6 +682,52 @@ model trained on the b-th bootstrap sample</p></li>
 <li><p>The final prediction is the average of all models for regression
 or a majority vote for classification</p></li>
 </ul>
+<p>Assumptions: Bagging relies on far fewer assumptions than statistical
+models like logistic regression. Since it uses man decision trees
+trained on bootstrapped samples, it is flexible, non-parametric, and
+robust to complex nonlinear relationships.</p>
+<ol style="list-style-type: decimal">
+<li>No linearity assumption: Decision trees do not require linear
+relationships between predictors and the outcome</li>
+</ol>
+<ol style="list-style-type: lower-alpha">
+<li>Our check: Our exploratory plots showed nonlinear trends in several
+financial ratios, making Bagging appropriate</li>
+</ol>
+<ol start="2" style="list-style-type: decimal">
+<li>Handles multicollinearity: Tree-based models are not affected by
+strongly correlated predictors</li>
+</ol>
+<ol style="list-style-type: lower-alpha">
+<li>Our check: Many ratios in our dataset were highly correlated and
+Bagging naturally manages this without instability</li>
+</ol>
+<ol start="3" style="list-style-type: decimal">
+<li>Handles outliers and skewed variables: Decision trees partition data
+based on thresholds, so extreme values do not distort the model</li>
+</ol>
+<ol style="list-style-type: lower-alpha">
+<li>Our check: Several financial ratios were heavily skewed; Bagging
+remainds reliable under these conditions</li>
+</ol>
+<ol start="4" style="list-style-type: decimal">
+<li>No distributional assumptions: Bagging does not assume normality or
+equal variances</li>
+</ol>
+<ol style="list-style-type: lower-alpha">
+<li>Our check: These assumptions were violated in the data, but Bagging
+does not require them</li>
+</ol>
+<ol start="5" style="list-style-type: decimal">
+<li>Requires reasonably independent observations: Observations should
+not be duplicated or repeated entities</li>
+</ol>
+<ol style="list-style-type: lower-alpha">
+<li>Our check: Each fire is observed once, so this assumption is
+met</li>
+</ol>
+<p>Assumption Summary: Although Bagging does not directly correct the
+extreme class imbalance, we addressed this using balanced sampling</p>
 <p>When we evaluated the Bagging model on the test set, the confusion
 matrix was:</p>
 <table>
@@ -767,6 +793,52 @@ from the b-th decision tree</p></li>
 chooses from a random subset of predictors rather than all
 predictors</p></li>
 </ul>
+<p>Assumptions: Random Forest is a nonparametric ensemble method with
+far fewer assumptions than linear models, making it well-suited for
+noisy, high-dimensional financial data.</p>
+<ol style="list-style-type: decimal">
+<li>Independence of observations: Each row should represent an
+independent data point</li>
+</ol>
+<ol style="list-style-type: lower-alpha">
+<li>Our Check: Each firm appears once in the dataset, so this assumption
+is satisfied</li>
+</ol>
+<ol start="2" style="list-style-type: decimal">
+<li>Sufficient variability and sample size: Random Forest requires
+enough data for bootstrapping to create diverse trees</li>
+</ol>
+<ol style="list-style-type: lower-alpha">
+<li><p>Our Check: With thousands of firms and many predictors, the
+dataset provides ample variation</p></li>
+<li><p>Why Acceptable: The model produced stable out-of-bag error
+estimates, indicating enough data for reliable tree
+construction</p></li>
+</ol>
+<ol start="3" style="list-style-type: decimal">
+<li>No assumptions of linearity or normality: Random Forest does not
+require linear relationships, normally distributed predictors, or
+homoscedasticity</li>
+</ol>
+<ol style="list-style-type: lower-alpha">
+<li><p>Our Check: Financial ratios showed strong nonlinear relationships
+and skewed distributions</p></li>
+<li><p>Why Acceptable: These patterns are expected in bankruptcy data,
+and Random Forest naturally captures nonlinear interactions</p></li>
+</ol>
+<ol start="4" style="list-style-type: decimal">
+<li>Handles multicollinearity automatically: Tree-based models are not
+affected by correlated predictors</li>
+</ol>
+<ol style="list-style-type: lower-alpha">
+<li><p>Our Check: Many features were heavily correlated</p></li>
+<li><p>Why Acceptable: Random feature selection prevents trees from
+repeatedly spltting on the same correlated variablles, reducing
+overfitting</p></li>
+</ol>
+<p>Assumption Summary: Random Forest satisfies its core assumptions and
+is well-matched to this dataset’s structure: nonlinear relationships,
+correlated financial ratios, and high dimensionality.</p>
 <p>After training the Random Forest model on our dataset, the confusion
 matrix was:</p>
 <table>

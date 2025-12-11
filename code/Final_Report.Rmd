@@ -227,15 +227,11 @@ Assumptions: Ridge Regression inherits the assumptions of logistic regression bu
 
 a. Our check: Probability plots show some nonlinear patterns, meaning this assumption is not fully met
 
-???
-
 b. Why acceptable: Ridge is robust to mild misspecificiation because shrinkage stabilizes coefficients
 
 2. No perfect multicollinearity: Predictors should ot be perfectly correlated
 
 a. Our check: Many financial ratios are highly correlated
-
-???
 
 b. Why acceptable: This is exactly what Ridge is designed for; L2 regularization handles multicollinearity by shrinking correlated coefficients together
 
@@ -243,13 +239,9 @@ b. Why acceptable: This is exactly what Ridge is designed for; L2 regularization
 
 a. Our check: Firms appear only once, so thi assumption is satisfied
 
-???
-
 4. Reasonable class balance: Logistic regression is sensitive to imbalance
 
 a. Our check: The data is extremely imbalanced
-
-???
 
 b. How addressed: We used class weights in the Ridge model to compensate
 
@@ -364,17 +356,13 @@ Assumptions: LASSO relies on the same core assumptions as logistic regression, b
 
 1. Linearity of the log-odds: The model assumes a linear relationship between predictors and the log-odds of bankruptcy
 
-a. Check: Probability plots sowed some nonlinear patterns, so this assumption is not perfectly met
+a. Our check: Probability plots showed some nonlinear patterns, so this assumption is not perfectly met
 
-???
-
-b. Why still acceptable: LASSO's regularization helps reduce overfitting even when the relationship is not perfectly linear
+b. Why acceptable: LASSO's regularization helps reduce overfitting even when the relationship is not perfectly linear
 
 2. No perfect multicollinearity: Predictors should not be perfectly correlated
 
-a. Check: Financial ratios are strongly correlated
-
-???
+a. Our check: Financial ratios are strongly correlated
 
 b. Issue: LASSO tends to pick one variable from a correlated group and discard the rest, which can create instability.
 
@@ -382,15 +370,11 @@ c. Why acceptable: This behavior is actually useful for variable selection, and 
 
 3. Independent observations: Each observation shold be independent
 
-a. Check: Each company appears once, so this assumption is satisfied
-
-???
+a. Our check: Each company appears once, so this assumption is satisfied
 
 4. Class balance: Logistic-based models can struggle with extreme imbalance
 
-a. Check: The dataset is highly imbalanced
-
-???
+a. Our check: The dataset is highly imbalanced
 
 b. How addressed: Class weights were used to reduce bias toward the majority class
 
@@ -490,6 +474,30 @@ Where:
 
 * The final prediction is the average of all models for regression or a majority vote for classification
 
+Assumptions: Bagging relies on far fewer assumptions than statistical models like logistic regression. Since it uses man decision trees trained on bootstrapped samples, it is flexible, non-parametric, and robust to complex nonlinear relationships.
+
+1. No linearity assumption: Decision trees do not require linear relationships between predictors and the outcome
+
+a. Our check: Our exploratory plots showed nonlinear trends in several financial ratios, making Bagging appropriate
+
+2. Handles multicollinearity: Tree-based models are not affected by strongly correlated predictors
+
+a. Our check: Many ratios in our dataset were highly correlated and Bagging naturally manages this without instability
+
+3. Handles outliers and skewed variables: Decision trees partition data based on thresholds, so extreme values do not distort the model
+
+a. Our check: Several financial ratios were heavily skewed; Bagging remainds reliable under these conditions
+
+4. No distributional assumptions: Bagging does not assume normality or equal variances
+
+a. Our check: These assumptions were violated in the data, but Bagging does not require them
+
+5. Requires reasonably independent observations: Observations should not be duplicated or repeated entities
+
+a. Our check: Each fire is observed once, so this assumption is met
+
+Assumption Summary: Although Bagging does not directly correct the extreme class imbalance, we addressed this using balanced sampling
+
 When we evaluated the Bagging model on the test set, the confusion matrix was:
 
 ```{r, echo = FALSE}
@@ -584,6 +592,32 @@ Where:
 * $T_b(x)$ is the prediction from the b-th decision tree
 
 * Each tree is trained on a bootstrap sample and, at each split, chooses from a random subset of predictors rather than all predictors
+
+Assumptions: Random Forest is a nonparametric ensemble method with far fewer assumptions than linear models, making it well-suited for noisy, high-dimensional financial data.
+
+1. Independence of observations: Each row should represent an independent data point
+
+a. Our Check: Each firm appears once in the dataset, so this assumption is satisfied
+
+2. Sufficient variability and sample size: Random Forest requires enough data for bootstrapping to create diverse trees
+
+a. Our Check: With thousands of firms and many predictors, the dataset provides ample variation
+
+b. Why Acceptable: The model produced stable out-of-bag error estimates, indicating enough data for reliable tree construction
+
+3. No assumptions of linearity or normality: Random Forest does not require linear relationships, normally distributed predictors, or homoscedasticity
+
+a. Our Check: Financial ratios showed strong nonlinear relationships and skewed distributions
+
+b. Why Acceptable: These patterns are expected in bankruptcy data, and Random Forest naturally captures nonlinear interactions
+
+4. Handles multicollinearity automatically: Tree-based models are not affected by correlated predictors
+
+a. Our Check: Many features were heavily correlated
+
+b. Why Acceptable: Random feature selection prevents trees from repeatedly spltting on the same correlated variablles, reducing overfitting
+
+Assumption Summary: Random Forest satisfies its core assumptions and is well-matched to this dataset's structure: nonlinear relationships, correlated financial ratios, and high dimensionality. 
 
 After training the Random Forest model on our dataset, the confusion matrix was:
 
