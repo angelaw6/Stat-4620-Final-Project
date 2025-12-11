@@ -364,78 +364,153 @@ December 14th, 2025
 </h4>
 </div>
 <p><br></p>
-<center>
-<div id="introduction" class="section level2">
+<div id="introduction" class="section level2" style="text-align: center;">
 <h2>Introduction</h2>
-<p>???</p>
 </div>
-<div id="exploratory-data-analysis" class="section level2">
+<p>???</p>
+<div id="exploratory-data-analysis" class="section level2" style="text-align: center;">
 <h2>Exploratory Data Analysis</h2>
+</div>
 <p>???</p>
-<div id="data-problems" class="section level3">
+<div id="data-problems" class="section level3" style="text-align: center;">
 <h3>Data Problems</h3>
-<p>???</p>
 </div>
-<div id="variable-types" class="section level3">
+<p>???</p>
+<div id="variable-types" class="section level3" style="text-align: center;">
 <h3>Variable Types</h3>
-<p>???</p>
 </div>
-<div id="missing-data" class="section level3">
+<p>???</p>
+<div id="missing-data" class="section level3" style="text-align: center;">
 <h3>Missing Data</h3>
-<p>???</p>
 </div>
-<div id="collinearity-issues" class="section level3">
+<p>???</p>
+<div id="collinearity-issues" class="section level3" style="text-align: center;">
 <h3>Collinearity Issues</h3>
-<p>???</p>
 </div>
-<div id="potential-important-predictors" class="section level3">
+<p>???</p>
+<div id="potential-important-predictors" class="section level3" style="text-align: center;">
 <h3>Potential Important Predictors</h3>
-<p>???</p>
 </div>
-<div id="key-figures-and-numerical-summaries" class="section level3">
+<p>???</p>
+<div id="key-figures-and-numerical-summaries" class="section level3" style="text-align: center;">
 <h3>Key Figures and Numerical Summaries</h3>
-<p>???</p>
 </div>
-<div id="potential-models" class="section level3">
+<p>???</p>
+<div id="potential-models" class="section level3" style="text-align: center;">
 <h3>Potential Models</h3>
+</div>
 <p>???</p>
-</div>
-</div>
-<div id="model-analysis" class="section level2">
+<div id="model-analysis" class="section level2" style="text-align: center;">
 <h2>Model Analysis</h2>
-<div id="investigated-models" class="section level3">
-<h3>Investigated Models</h3>
+</div>
+<div id="investigated-models-description-and-assumptions" class="section level3" style="text-align: center;">
+<h3>Investigated Models, Description, and Assumptions</h3>
+</div>
 <p>Prior to our exploratory data analysis, we planned to train and test
 our data using three method: KNN, PLS, and Classification/Regression
 Trees. However, after analyzing the structure of our data and evaluating
 initial model performance, several issues became clear:</p>
-<p>Extreme Class Imbalance: Bankruptcy cases make up only a small
+<ul>
+<li><p>Extreme Class Imbalance: Bankruptcy cases make up only a small
 fraction of the dataset, causing these methods ot default to predicting
-the majority class.</p>
-<p>High-Dimensional Numeric Ratios: The dataset contains many correlated
-financial ratios, which introduces noise and instability, especially
-harmful for KNN and PLS.</p>
-<p>Nonlinear Relationships: The relationship between financial
+the majority class.</p></li>
+<li><p>High-Dimensional Numeric Ratios: The dataset contains many
+correlated financial ratios, which introduces noise and instability,
+especially harmful for KNN and PLS.</p></li>
+<li><p>Nonlinear Relationships: The relationship between financial
 predictors and bankruptcy risk is highly nonlinear, limiting the
-effectiveness of simple tree models and linear projections.</p>
-<p>Overlapping Distributions: Bankrupt and non-bankrupt have very
+effectiveness of simple tree models and linear projections.</p></li>
+<li><p>Overlapping Distributions: Bankrupt and non-bankrupt have very
 similar predictor values, making it difficult for distance-based or
-linear-separation methods to distinguish between classes.</p>
+linear-separation methods to distinguish between classes.</p></li>
+</ul>
 <p>Given these challenges, we shifted our focus to models that are more
 robust to imbalance, multicollinearity, and complex strucutre.
 Specifically, we explored Ridge Regression, LASSO, Bagging, and Random
 Forest, which provided significantly stronger perforance and more stable
 predictions. We examine these models and their results in the following
 sections.</p>
-<div id="ridge-regression" class="section level4">
+<div id="ridge-regression" class="section level4" style="text-align: center;">
 <h4>Ridge Regression</h4>
-<p>Definition and Formula: ???</p>
+</div>
 <p>The first model we explored was Ridge Regression, which is
 well-suited for datasets with highly correlated predictors, many
 numerical variables, substantial noise, and class imbalance—all
 characteristics that appeared in our exploratory analysis. Because Ridge
 is designed to stabilize coefficient estimates in these settings, it was
 a strong candidate for our bankruptcy prediction task.</p>
+<p>Definition and Formula: Ridge Regression estimates the coefficients
+by minimizing the usual sum of quared errors subject ot an L2 penalty
+that shrinks the coefficients towards zero:</p>
+<div style="text-align: center;">
+<p><span class="math inline">\(\hat\beta_{Ridge} = argmin_{\beta}
+\sum_{i=1}^n (y_i - \beta_0 - \sum_{j=1}^p \beta_jx_{ij}) ^ 2\)</span>
+subject to <span class="math inline">\(\sum_{j=1}^p \beta_j^2 \le
+s\)</span></p>
+</div>
+<p>Here:</p>
+<ul>
+<li><p><span class="math inline">\(\lambda \ge 0\)</span> is the tuning
+parameter controlling shrinkage</p></li>
+<li><p>Larger <span class="math inline">\(\lambda\)</span> forces
+coefficients toward 0 (reducing variance)</p></li>
+<li><p>Ridge is useful when predictors are highlight correlated,
+numerous, or the model risks overfitting</p></li>
+</ul>
+<p>Assumptions: Ridge Regression inherits the assumptions of logistic
+regression but relaxes some of them through its L2 penalty</p>
+<ol style="list-style-type: decimal">
+<li>Linerity of log-odds: The model assumes a linear relationship
+between predictors and the log-odds of bankruptcy</li>
+</ol>
+<ol style="list-style-type: lower-alpha">
+<li>Our check: Probability plots show some nonlinear patterns, meaning
+this assumption is not fully met</li>
+</ol>
+<p>???</p>
+<ol start="2" style="list-style-type: lower-alpha">
+<li>Why acceptable: Ridge is robust to mild misspecificiation because
+shrinkage stabilizes coefficients</li>
+</ol>
+<ol start="2" style="list-style-type: decimal">
+<li>No perfect multicollinearity: Predictors should ot be perfectly
+correlated</li>
+</ol>
+<ol style="list-style-type: lower-alpha">
+<li>Our check: Many financial ratios are highly correlated</li>
+</ol>
+<p>???</p>
+<ol start="2" style="list-style-type: lower-alpha">
+<li>Why acceptable: This is exactly what Ridge is designed for; L2
+regularization handles multicollinearity by shrinking correlated
+coefficients together</li>
+</ol>
+<ol start="3" style="list-style-type: decimal">
+<li>Independent observations: Each row must represent an independent
+company</li>
+</ol>
+<ol style="list-style-type: lower-alpha">
+<li>Our check: Firms appear only once, so thi assumption is
+satisfied</li>
+</ol>
+<p>???</p>
+<ol start="4" style="list-style-type: decimal">
+<li>Reasonable class balance: Logistic regression is sensitive to
+imbalance</li>
+</ol>
+<ol style="list-style-type: lower-alpha">
+<li>Our check: The data is extremely imbalanced</li>
+</ol>
+<p>???</p>
+<ol start="2" style="list-style-type: lower-alpha">
+<li>How addressed: We used class weights in the Ridge model to
+compensate</li>
+</ol>
+<p>Assumption Summary: Although the dataset violates linearity and
+balance assumptions, Ridge Regression remains appropriate because the L2
+penalty directly addresses multicollinearity, reduces variance, and
+performs well in noisy, high-dimensional settings; supported by its
+strong AUC and sensitivity in our results.</p>
 <p>After training the model and evaluating it on the test set, we
 obtained the following confusion matrix:</p>
 <table>
@@ -461,23 +536,26 @@ obtained the following confusion matrix:</p>
 </tbody>
 </table>
 <p>From this output, we calculated several performance metrics:</p>
-<p>Accuracy = 0.8583 - The model correctly classified about 86% of all
-firms in the test set.</p>
-<p>Sensitivity = 0.8625 - The model correctly identified approximately
-86% of actual bankrupt companies, which is important given our goal of
-catching high-risk firms.</p>
-<p>Specificity = 0.8581 - About 86% of non-bankrupt firms were correctly
-labeled, indicating strong performance on the majority class.</p>
-<p>AUC = 0.9318 - This value shows that Ridge Regression is excellent at
-separating bankrupt vs. non-bankrupt firms across all classification
-thresholds, reflecting strong overall discriminative ability.</p>
+<ul>
+<li><p>Accuracy = 0.8583 - The model correctly classified about 86% of
+all firms in the test set.</p></li>
+<li><p>Sensitivity = 0.8625 - The model correctly identified
+approximately 86% of actual bankrupt companies, which is important given
+our goal of catching high-risk firms.</p></li>
+<li><p>Specificity = 0.8581 - About 86% of non-bankrupt firms were
+correctly labeled, indicating strong performance on the majority
+class.</p></li>
+<li><p>AUC = 0.9318 - This value shows that Ridge Regression is
+excellent at separating bankrupt vs. non-bankrupt firms across all
+classification thresholds, reflecting strong overall discriminative
+ability.</p></li>
+</ul>
 <p>Overall, Ridge Regression performs well on this dataset and
 effectively balances sensitivity and specificity, making it a strong
 foundation for further analysis.</p>
-</div>
-<div id="lasso" class="section level4">
+<div id="lasso" class="section level4" style="text-align: center;">
 <h4>LASSO</h4>
-<p>Definition and Formula: ???</p>
+</div>
 <p>The next model we evaluated was LASSO Regression, which is
 particularly useful when dealing with datasets that contain many
 predictors and potential redundancy. Unlike Ridge, which shrinks all
@@ -485,6 +563,78 @@ coefficients, LASSO can shrink some coefficients all the way to zero,
 effectively performing feature selection. Given the high-dimensional
 financial ratios in our dataset, LASSO was a strong candidate because it
 helps identify the most important predictors while reducing noise.</p>
+<p>Definition and Formula: LASSO (Least Absolute Shrinkage and Selection
+Operator) estimates the coefficients by minimizing the sum of squared
+errors subject to an L1 penalty, which both shrinks coefficients and can
+set some exactly to zero (performing variable selection)</p>
+<div style="text-align: center;">
+<p><span class="math inline">\(\hat\beta_{LASSO} = argmin_{\beta}
+\sum_{i=1}^n (y_i - \beta_0 - \sum_{j=1}^p \beta_jx_{ij}) ^ 2\)</span>
+subject to <span class="math inline">\(\sum_{j=1}^p |\beta_j| \le
+s\)</span></p>
+</div>
+<p>Here:</p>
+<ul>
+<li><p><span class="math inline">\(\lambda \ge 0\)</span> controls the
+amount of shrinkage</p></li>
+<li><p>The L1 penalty forces some coefficients exactly to zero</p></li>
+<li><p>LASSO is especially useful when feature selection is desired or
+when many predictors are irrelevant</p></li>
+</ul>
+<p>Assumptions: LASSO relies on the same core assumptions as logistic
+regression, but its L1 penalty adds sparsity and variable selection.</p>
+<ol style="list-style-type: decimal">
+<li>Linearity of the log-odds: The model assumes a linear relationship
+between predictors and the log-odds of bankruptcy</li>
+</ol>
+<ol style="list-style-type: lower-alpha">
+<li>Check: Probability plots sowed some nonlinear patterns, so this
+assumption is not perfectly met</li>
+</ol>
+<p>???</p>
+<ol start="2" style="list-style-type: lower-alpha">
+<li>Why still acceptable: LASSO’s regularization helps reduce
+overfitting even when the relationship is not perfectly linear</li>
+</ol>
+<ol start="2" style="list-style-type: decimal">
+<li>No perfect multicollinearity: Predictors should not be perfectly
+correlated</li>
+</ol>
+<ol style="list-style-type: lower-alpha">
+<li>Check: Financial ratios are strongly correlated</li>
+</ol>
+<p>???</p>
+<ol start="2" style="list-style-type: lower-alpha">
+<li><p>Issue: LASSO tends to pick one variable from a correlated group
+and discard the rest, which can create instability.</p></li>
+<li><p>Why acceptable: This behavior is actually useful for variable
+selection, and the model still performed well is testing.</p></li>
+</ol>
+<ol start="3" style="list-style-type: decimal">
+<li>Independent observations: Each observation shold be independent</li>
+</ol>
+<ol style="list-style-type: lower-alpha">
+<li>Check: Each company appears once, so this assumption is
+satisfied</li>
+</ol>
+<p>???</p>
+<ol start="4" style="list-style-type: decimal">
+<li>Class balance: Logistic-based models can struggle with extreme
+imbalance</li>
+</ol>
+<ol style="list-style-type: lower-alpha">
+<li>Check: The dataset is highly imbalanced</li>
+</ol>
+<p>???</p>
+<ol start="2" style="list-style-type: lower-alpha">
+<li>How addressed: Class weights were used to reduce bias toward the
+majority class</li>
+</ol>
+<p>Assumption Summary: LASSO does not perfectly satisf linearity or
+balance assumptions, and its variable selection can be unstable under
+multicollinearity. However, it still performed strongly and produced a
+sparse, interpretable model, making it a useful completementary
+approach; even if not the final chosen model.</p>
 <p>After fitting the LASSO model on the training set and evaluating it
 on the test set, we obtained the following confusion matrix:</p>
 <table>
@@ -510,32 +660,48 @@ on the test set, we obtained the following confusion matrix:</p>
 </tbody>
 </table>
 <p>From this, we computed the key performance metrics:</p>
-<p>Accuracy = 0.8612 - The model correctly classified about 86% of the
-companies in the test set.</p>
-<p>Sensitivity = 0.8500 - LASSO correctly identified about 85% of the
-actual bankrupt companies.</p>
-<p>Specificity = 0.8616 - About 86% of the non-bankrupt companies were
-correctly classified.</p>
-<p>AUC = 0.9301 - This indicates excellent class separation, nearly as
-strong as Ridge, demonstrating that LASSO is also highly effective at
+<ul>
+<li><p>Accuracy = 0.8612 - The model correctly classified about 86% of
+the companies in the test set.</p></li>
+<li><p>Sensitivity = 0.8500 - LASSO correctly identified about 85% of
+the actual bankrupt companies.</p></li>
+<li><p>Specificity = 0.8616 - About 86% of the non-bankrupt companies
+were correctly classified.</p></li>
+<li><p>AUC = 0.9301 - This indicates excellent class separation, nearly
+as strong as Ridge, demonstrating that LASSO is also highly effective at
 distinguishing between bankrupt and non-bankrupt firms across all
-thresholds.</p>
+thresholds.</p></li>
+</ul>
 <p>Overall, LASSO performed very similarly to Ridge, with strong
 accuracy and discrimination ability. Its slightly lower sensitivity
 compared to Ridge suggests it identifies slightly fewer bankrupt firms,
 but its interpretability advantage (automatic variable selection) makes
 it especially useful for understanding which financial ratios matter
 most.</p>
-</div>
-<div id="bagging" class="section level4">
+<div id="bagging" class="section level4" style="text-align: center;">
 <h4>Bagging</h4>
-<p>Definition and Formula: ???</p>
+</div>
 <p>Bagging is an ensemble method that reduces variance by training many
 decision trees on bootstrapped samples of the data and averaging their
 predictions. Because individual trees are highly sensitive to noise and
 instability, bagging helps stabilize predictions, making it a strong
 candidate for noisy, high-dimensional, and imbalanced datasets like
 ours.</p>
+<p>Definition and Formula: Bagging is an ensemble learning method that
+reduces variance by training multiple models on different bootstrap
+samples of the data and averaging their predictors:</p>
+<div style="text-align: center;">
+<p><span class="math inline">\(\hat f_{bag}(x) = \frac{1}{B}\sum_{b=1}^B
+\hat f_b(x)\)</span></p>
+</div>
+<p>Where:</p>
+<ul>
+<li><p>B is the number of bootstrap samples</p></li>
+<li><p>Each <span class="math inline">\(\hat f_b(x)\)</span> is the
+model trained on the b-th bootstrap sample</p></li>
+<li><p>The final prediction is the average of all models for regression
+or a majority vote for classification</p></li>
+</ul>
 <p>When we evaluated the Bagging model on the test set, the confusion
 matrix was:</p>
 <table>
@@ -561,28 +727,46 @@ matrix was:</p>
 </tbody>
 </table>
 <p>From this output, we obtained the following metrics:</p>
-<p>Accuracy = 0.8876 - The model correctly classified about 89% of all
-companies in the test set.</p>
-<p>Sensitivity = 0.7625 - Bagging identified roughly 76% of bankrupt
-companies, which is strong given the severe class imbalance.</p>
-<p>Specificity = 0.8927 - Nearly 89% of non-bankrupt firms were
-correctly labeled.</p>
-<p>AUC = 0.9281 - This high AUC indicates that Bagging separates
+<ul>
+<li><p>Accuracy = 0.8876 - The model correctly classified about 89% of
+all companies in the test set.</p></li>
+<li><p>Sensitivity = 0.7625 - Bagging identified roughly 76% of bankrupt
+companies, which is strong given the severe class imbalance.</p></li>
+<li><p>Specificity = 0.8927 - Nearly 89% of non-bankrupt firms were
+correctly labeled.</p></li>
+<li><p>AUC = 0.9281 - This high AUC indicates that Bagging separates
 bankrupt vs. non-bankrupt companies well across all probability
-thresholds.</p>
+thresholds.</p></li>
+</ul>
 <p>Overall, Bagging performed very well and showed a strong balance
 between sensitivity and specificity, making it one of our top-performing
 models.</p>
-</div>
-<div id="random-forest" class="section level4">
+<div id="random-forest" class="section level4" style="text-align: center;">
 <h4>Random Forest</h4>
-<p>Definition and Formula: ???</p>
+</div>
 <p>Random Forest builds on the idea of Bagging by adding an additional
-layer of randomness: each tree in the ensemble is trained on a
+layer of randomness. Each tree in the ensemble is trained on a
 bootstrapped sample and only a random subset of predictors at each
 split. This helps decorrelate the trees, reduces overfitting, and often
 improves performance, especially in datasets with many correlated
 financial ratios, like ours.</p>
+<p>Definition and Formula: Random Forest is an ensemble learning method
+that builds multiple decision trees using both bootstrap samples of the
+data and random subsets of predictors at each split, reducing variance
+and limiting overfitting:</p>
+<div style="text-align: center;">
+<p><span class="math inline">\(\hat f_{RF}(x) = \frac{1}{B}\sum_{b=1}^B
+T_b(x)\)</span></p>
+</div>
+<p>Where:</p>
+<ul>
+<li><p>B is the number of trees</p></li>
+<li><p><span class="math inline">\(T_b(x)\)</span> is the prediction
+from the b-th decision tree</p></li>
+<li><p>Each tree is trained on a bootstrap sample and, at each split,
+chooses from a random subset of predictors rather than all
+predictors</p></li>
+</ul>
 <p>After training the Random Forest model on our dataset, the confusion
 matrix was:</p>
 <table>
@@ -609,24 +793,28 @@ matrix was:</p>
 </table>
 <p>From this model output, we computed the following evaluation
 metrics:</p>
-<p>Accuracy = 0.8895 - Random Forest correctly classified about 89% of
-firms in the test set, tying Bagging for the highest overall
-accuracy.</p>
-<p>Sensitivity = 0.7625 - The model detected about 76% of actual
+<ul>
+<li><p>Accuracy = 0.8895 - Random Forest correctly classified about 89%
+of firms in the test set, tying Bagging for the highest overall
+accuracy.</p></li>
+<li><p>Sensitivity = 0.7625 - The model detected about 76% of actual
 bankrupt companies, performing slightly below Bagging in recall of
-minority cases.</p>
-<p>Specificity = 0.8947 - Nearly 89% of non-bankrupt firms were
-correctly identified, the strongest specificity among all models.</p>
-<p>AUC = 0.9305 - A high AUC score indicating strong ranking ability and
-good separation between bankrupt and non-bankrupt companies.</p>
+minority cases.</p></li>
+<li><p>Specificity = 0.8947 - Nearly 89% of non-bankrupt firms were
+correctly identified, the strongest specificity among all
+models.</p></li>
+<li><p>AUC = 0.9305 - A high AUC score indicating strong ranking ability
+and good separation between bankrupt and non-bankrupt
+companies.</p></li>
+</ul>
 <p>Overall, Random Forest performed extremely well, offering one of the
 best combinations of accuracy, specificity, and AUC among the models
 tested. Its slight trade-off in sensitivity compared to Bagging is
 common, but it remained one of the strongest-performing classifiers on
 this dataset.</p>
-</div>
-<div id="model-comparison" class="section level4">
+<div id="model-comparison" class="section level4" style="text-align: center;">
 <h4>Model Comparison</h4>
+</div>
 <p>After running all four models, we compared their performance using
 the key metrics discussed earlier:</p>
 <table>
@@ -707,27 +895,18 @@ also provides the highest AUC, it represents the most reliable and
 balanced model for our prediction task.</p>
 <p>Therefore, the final model selected was the Ridge Regression
 model.</p>
-</div>
-</div>
-<div id="description-of-final-model" class="section level3">
+<div id="description-of-final-model" class="section level3" style="text-align: center;">
 <h3>Description of Final Model</h3>
-<p>???</p>
 </div>
-<div id="model-assumptions" class="section level3">
-<h3>Model Assumptions</h3>
-<pre class="r"><code># PUT THESE IN INVESTIGATED MODELS</code></pre>
 <p>???</p>
-</div>
-<div id="model-validation" class="section level3">
+<div id="model-validation" class="section level3" style="text-align: center;">
 <h3>Model Validation</h3>
+</div>
 <p>???</p>
-</div>
-</div>
-<div id="conclusion" class="section level2">
+<div id="conclusion" class="section level2" style="text-align: center;">
 <h2>Conclusion</h2>
-???
-</center>
 </div>
+<p>???</p>
 
 
 
