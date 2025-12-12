@@ -33,6 +33,7 @@ library(rlang)
 library(gridExtra)
 library(knitr)
 library(kableExtra)
+library(gains)
 ```
 
 ```{r, include = FALSE}
@@ -225,25 +226,25 @@ Assumptions: Ridge Regression inherits the assumptions of logistic regression bu
 
 1. Linerity of log-odds: The model assumes a linear relationship between predictors and the log-odds of bankruptcy
 
-a. Our check: Probability plots show some nonlinear patterns, meaning this assumption is not fully met
+    a. Our check: Probability plots show some nonlinear patterns, meaning this assumption is not fully met
 
-b. Why acceptable: Ridge is robust to mild misspecificiation because shrinkage stabilizes coefficients
+    b. Why acceptable: Ridge is robust to mild misspecificiation because shrinkage stabilizes coefficients
 
 2. No perfect multicollinearity: Predictors should ot be perfectly correlated
 
-a. Our check: Many financial ratios are highly correlated
+    a. Our check: Many financial ratios are highly correlated
 
-b. Why acceptable: This is exactly what Ridge is designed for; L2 regularization handles multicollinearity by shrinking correlated coefficients together
+    b. Why acceptable: This is exactly what Ridge is designed for; L2 regularization handles multicollinearity by shrinking correlated coefficients together
 
 3. Independent observations: Each row must represent an independent company
 
-a. Our check: Firms appear only once, so thi assumption is satisfied
+    a. Our check: Firms appear only once, so this assumption is satisfied
 
 4. Reasonable class balance: Logistic regression is sensitive to imbalance
 
-a. Our check: The data is extremely imbalanced
+    a. Our check: The data is extremely imbalanced
 
-b. How addressed: We used class weights in the Ridge model to compensate
+    b. How addressed: We used class weights in the Ridge model to compensate
 
 Assumption Summary: Although the dataset violates linearity and balance assumptions, Ridge Regression remains appropriate because the L2 penalty directly addresses multicollinearity, reduces variance, and performs well in noisy, high-dimensional settings; supported by its strong AUC and sensitivity in our results.
 
@@ -356,27 +357,27 @@ Assumptions: LASSO relies on the same core assumptions as logistic regression, b
 
 1. Linearity of the log-odds: The model assumes a linear relationship between predictors and the log-odds of bankruptcy
 
-a. Our check: Probability plots showed some nonlinear patterns, so this assumption is not perfectly met
+    a. Our check: Probability plots showed some nonlinear patterns, so this assumption is not perfectly met
 
-b. Why acceptable: LASSO's regularization helps reduce overfitting even when the relationship is not perfectly linear
+    b. Why acceptable: LASSO's regularization helps reduce overfitting even when the relationship is not perfectly linear
 
 2. No perfect multicollinearity: Predictors should not be perfectly correlated
 
-a. Our check: Financial ratios are strongly correlated
+    a. Our check: Financial ratios are strongly correlated
 
-b. Issue: LASSO tends to pick one variable from a correlated group and discard the rest, which can create instability.
+    b. Issue: LASSO tends to pick one variable from a correlated group and discard the rest, which can create instability.
 
-c. Why acceptable: This behavior is actually useful for variable selection, and the model still performed well is testing.
+    c. Why acceptable: This behavior is actually useful for variable selection, and the model still performed well is testing.
 
 3. Independent observations: Each observation shold be independent
 
-a. Our check: Each company appears once, so this assumption is satisfied
+    a. Our check: Each company appears once, so this assumption is satisfied
 
 4. Class balance: Logistic-based models can struggle with extreme imbalance
 
-a. Our check: The dataset is highly imbalanced
+    a. Our check: The dataset is highly imbalanced
 
-b. How addressed: Class weights were used to reduce bias toward the majority class
+    b. How addressed: Class weights were used to reduce bias toward the majority class
 
 Assumption Summary: LASSO does not perfectly satisf linearity or balance assumptions, and its variable selection can be unstable under multicollinearity. However, it still performed strongly and produced a sparse, interpretable model, making it a useful completementary approach; even if not the final chosen model.
 
@@ -478,23 +479,23 @@ Assumptions: Bagging relies on far fewer assumptions than statistical models lik
 
 1. No linearity assumption: Decision trees do not require linear relationships between predictors and the outcome
 
-a. Our check: Our exploratory plots showed nonlinear trends in several financial ratios, making Bagging appropriate
+    a. Our check: Our exploratory plots showed nonlinear trends in several financial ratios, making Bagging appropriate
 
 2. Handles multicollinearity: Tree-based models are not affected by strongly correlated predictors
 
-a. Our check: Many ratios in our dataset were highly correlated and Bagging naturally manages this without instability
+    a. Our check: Many ratios in our dataset were highly correlated and Bagging naturally manages this without instability
 
 3. Handles outliers and skewed variables: Decision trees partition data based on thresholds, so extreme values do not distort the model
 
-a. Our check: Several financial ratios were heavily skewed; Bagging remainds reliable under these conditions
+    a. Our check: Several financial ratios were heavily skewed; Bagging remainds reliable under these conditions
 
 4. No distributional assumptions: Bagging does not assume normality or equal variances
 
-a. Our check: These assumptions were violated in the data, but Bagging does not require them
+    a. Our check: These assumptions were violated in the data, but Bagging does not require them
 
 5. Requires reasonably independent observations: Observations should not be duplicated or repeated entities
 
-a. Our check: Each fire is observed once, so this assumption is met
+    a. Our check: Each fire is observed once, so this assumption is met
 
 Assumption Summary: Although Bagging does not directly correct the extreme class imbalance, we addressed this using balanced sampling
 
@@ -597,25 +598,25 @@ Assumptions: Random Forest is a nonparametric ensemble method with far fewer ass
 
 1. Independence of observations: Each row should represent an independent data point
 
-a. Our Check: Each firm appears once in the dataset, so this assumption is satisfied
+    a. Our Check: Each firm appears once in the dataset, so this assumption is satisfied
 
 2. Sufficient variability and sample size: Random Forest requires enough data for bootstrapping to create diverse trees
 
-a. Our Check: With thousands of firms and many predictors, the dataset provides ample variation
+    a. Our Check: With thousands of firms and many predictors, the dataset provides ample variation
 
-b. Why Acceptable: The model produced stable out-of-bag error estimates, indicating enough data for reliable tree construction
+    b. Why Acceptable: The model produced stable out-of-bag error estimates, indicating enough data for reliable tree construction
 
 3. No assumptions of linearity or normality: Random Forest does not require linear relationships, normally distributed predictors, or homoscedasticity
 
-a. Our Check: Financial ratios showed strong nonlinear relationships and skewed distributions
+    a. Our Check: Financial ratios showed strong nonlinear relationships and skewed distributions
 
-b. Why Acceptable: These patterns are expected in bankruptcy data, and Random Forest naturally captures nonlinear interactions
+    b. Why Acceptable: These patterns are expected in bankruptcy data, and Random Forest naturally captures nonlinear interactions
 
 4. Handles multicollinearity automatically: Tree-based models are not affected by correlated predictors
 
-a. Our Check: Many features were heavily correlated
+    a. Our Check: Many features were heavily correlated
 
-b. Why Acceptable: Random feature selection prevents trees from repeatedly spltting on the same correlated variablles, reducing overfitting
+    b. Why Acceptable: Random feature selection prevents trees from repeatedly spltting on the same correlated variablles, reducing overfitting
 
 Assumption Summary: Random Forest satisfies its core assumptions and is well-matched to this dataset's structure: nonlinear relationships, correlated financial ratios, and high dimensionality. 
 
@@ -691,22 +692,141 @@ While the four models are comparable overall, the choice depends on the relative
 Therefore, the final model selected was the Ridge Regression model.
 
 <div style="text-align: center;">
-### Description of Final Model
-</div>
-```{r}
-
-```
-
-???
-
-<div style="text-align: center;">
 ### Model Validation
 </div>
-```{r}
+
+To confirm our decision of the Ridge Regression model, we decided to explore the details of the model to truly understand how it works.
+
+<div style="text-align: center;">
+```{r, message = FALSE, warning = FALSE, echo = FALSE}
+ridge_roc <- roc(y_test_ridge, as.numeric(ridge_prob))
+#auc(ridge_roc)
+plot(ridge_roc, main = "Ridge Regression ROC Curve")
+```
+</div>
+
+The Ridge Regression model achieved an AUC of .9318, indicating excellent ability to distinguish between bankrupt and non-bankrupt firms. An AUC this high measn the model correctly ranks risky companies above healthy ones the vast majority of the time, even across different probability thresholds. This strong discriminative performance is especially noteworthy given the dataset's extreme class imbalance, demonstrating that Ridge Regression is highly effctive at identifying high-risk firms despite the challenging structure of the data.
+
+<div style="text-align: center;">
+```{r, warning = FALSE, echo = FALSE}
+ridge_coefs <- coef(ridge_fit)
+
+coef_df <- data.frame(
+  Variable = rownames(ridge_coefs),
+  Coefficient = as.numeric(ridge_coefs)
+) %>%
+filter(Variable != "(Intercept)") %>%
+mutate(Abs_Coefficient = abs(Coefficient)) %>%
+arrange(desc(Abs_Coefficient))
+
+coef_df_top <- coef_df %>% slice_max(Abs_Coefficient, n = 20)
+
+ggplot(coef_df_top, aes(x = reorder(Variable, Coefficient), y = Coefficient)) +
+  geom_col(fill = "steelblue") +
+  coord_flip() +
+  labs(
+    title = "Top 20 Ridge Regression Coefficients (by Magnitude)",
+    x = "Predictor",
+    y = "Coefficient"
+  ) +
+  theme_minimal()
+```
+</div>
+
+The top 20 Ridge Regression coefficients highlight which financial ratios have the strongest influence on bankruptcy after shrinkage is applied. Variables wiht large positive coefficients, such as Debt Ratio and Current Liability to Assets, increase the predicted probability of bankruptcy, indicating the are strong risk indicators. In contrast, variables with large negative coefficients, such as Persistent EPS in the Last Four Seasons and Contingent Liabilities to Net Worth, reduce predicted bankruptcy risk. Since Ridge shrinks correlated predictors together rather than eliminating them, this rnking reflects the overall combined importance of financial ratios rather than selecting just a few individual features.
+
+<div style="text-align: center;">
+```{r, warning = FALSE, echo = FALSE}
+ridge_prob_df <- data.frame(
+  Predicted_Prob = as.numeric(ridge_prob),
+  Actual = factor(y_test_ridge, levels = c("0", "1"))
+)
+
+ggplot(ridge_prob_df, aes(x = Predicted_Prob, fill = Actual)) +
+  geom_density(alpha = 0.5) +
+  labs(
+    title = "Ridge Regression Predicted Probability Distribution",
+    x = "Predicted Bankruptcy Probability",
+    fill = "Actual Class"
+  ) +
+  theme_minimal()
+```
+</div>
+
+This probability distribution plot shows how well the Ridge Regression model separates bankrupt and non-bankrupt companies based on predicted risk scores. Non-bankrupt firms (Actual Class 0) are mostly concentrated near very low predicted probabilities, while bankrupt firms (Actual Class 1) cluster toward the higher end of the probability scale. Although there is some overlap in the middle range, which is expected given the noisy and imbalanced data, the two distributions are still well-separated. This indicates that the model assigns meaningfully different risk leels to the two groups and is effective at ranking firms by bankruptcy likelihood.
+
+<div style="text-align: center;">
+```{r, warning = FALSE, echo = FALSE}
+cal_data <- data.frame(
+  prob = as.numeric(ridge_prob),
+  actual = as.numeric(as.character(y_test_ridge))
+)
+
+cal_data$bin <- cut(cal_data$prob, breaks = seq(0, 1, by = 0.1), include.lowest = TRUE)
+
+cal_summary <- cal_data %>%
+  group_by(bin) %>%
+  summarize(
+  mean_pred = mean(prob),
+  actual_rate = mean(actual)
+)
+
+ggplot(cal_summary, aes(x = mean_pred, y = actual_rate)) +
+  geom_point(size = 3, color = "steelblue") +
+  geom_line(color = "steelblue") +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
+  labs(
+    title = "Ridge Regression Calibration Curve",
+    x = "Average Predicted Probability",
+    y = "Observed Bankruptcy Rate"
+  ) +
+  theme_minimal()
 
 ```
+</div>
 
-???
+The calibration curve evaluates how well Ridge Regression's predicted probabilities much actual bankruptcy rates. Ideally, points would lie on the diagonal dashed line, meaning predicted risks equal observed outcomes. In our plot, the model is slightly underconfident at lower probabilities (predicting small but nonzero risk even when almost no firms go bankrupt) and becomes more accurate as predicted probabilities increase, with strong alighnment in the highest-risk bins. This pattern indicates that while Ridge tends to "play it safe" t the low end, it reliably indicates genuinely high-risk firms, making its probability estimates useful for ranking and decision-making.
+
+<div style="text-align: center;">
+```{r, warning = FALSE, echo = FALSE}
+lift_data <- gains(
+  actual = as.numeric(as.character(y_test_ridge)),
+  predicted = as.numeric(ridge_prob),
+  groups = 10
+)
+
+lift_df <- data.frame(
+  depth = lift_data$depth,
+  lift = lift_data$lift
+)
+
+ggplot(lift_df, aes(x = depth, y = lift)) +
+  geom_line(color = "steelblue", size = 1.2) +
+  geom_point(size = 2) +
+  labs(
+    title = "Ridge Regression Lift Chart",
+    x = "Percentile of Sample",
+    y = "Lift"
+  ) +
+  theme_minimal()
+```
+</div>
+
+The lift chart shows how effectively Ridge Regression identifies the highest-risk companies. The very first segment of the ranked predictions achieves extremely high lift, meaning the model concentrates a disproportionately large share of actual bankruptcies among the firms it ranks as most likely to fail. Lift drops sharply after this top group, and later segments approach the performance of random selection. This pattern indicates that Ridge is highy effective at prioritizing the riskiest companies, even if its probability calibration is not perfect.
+
+```{r, warning = FALSE, echo = FALSE}
+top_risk <- data.frame(
+  Index = 1:length(ridge_prob),
+  Predicted_Prob = as.numeric(ridge_prob),
+  Actual = y_test_ridge
+) %>%
+arrange(desc(Predicted_Prob)) %>%
+head(10)
+
+kable(top_risk, digits = 4, caption = "Top 10 Highest-Risk Companies")
+```
+
+The table lists the ten companies that Ridge Regression assigned the highest predicted probability of bankruptcy. All ten firms have extremely high predicted probabilities, and most importantly, every company in this group is actually labeled bankrupt in the test set. This demonstrates that the model is highly effective at identifying the most at-risk firms. When Ridge assigns a near-certain probabilit of bankruptcy, it is consistently corrrect. This strong alighmnet between predicted risk and true outcomes reinforces the model's value for early-warning screening and prioritizing firms that require immediate attention.
 
 <div style="text-align: center;">
 ## Conclusion
