@@ -1085,7 +1085,33 @@ attention.</p>
 <div id="results" class="section level2" style="text-align: center;">
 <h2>Results</h2>
 </div>
-<p>???</p>
+<p>To evaluate final model performance, we tested the Ridge Regression
+model on our test dataset. Ridge was selected because it demonstrated
+strong discriminative performance, stability under multicollinearity,
+and effective handling of the highly imbalanced class structure.</p>
+<p>Across the test set, Ridge achieved an accuracy of .8583, sensitivity
+of .8625, and specificity of .8581 Importantly, Ridge produced an AUC of
+.9318, indicating excellent ability to rank companies by bankruptcy
+risk. The model consistently assigns very low probabilities to healthy
+firms and high probabilities to bankrupt firms, as reflected in the
+probability distribution plot used during validation.</p>
+<p>Interpreting the final fitted model, the largest coefficient
+magnitudes indicate which financial ratios contribute most strongly to
+bankruptcy risk. Variables such as Debt Ratio, Current Liability to
+Assets, and No Credit Interval increase predicted bankruptcy
+probability, while metrics like Persistent EPS in the Last Four Seasons
+and Contingent Liabilities to Net Worth reduce risk. Since Ridge shrinks
+correlated predictors together, there rankings reflect overall risk
+signals rather than reliance on a single feature.</p>
+<p>Finally, we examined the model’s highest-risk predictions. The top 10
+predicted-risk firms in the test set were all labeled bankrupt,
+demonstrating that Ridge is highly effective at identifying the most
+vulnerable comapnies. This makes the model particularly useful for
+early-warning systems and prioritizing firms for further financial
+assessment.</p>
+<p>Overall, Ridge Regression provides strong predictive accuracy,
+excellent ranking performance, and interpretable financial drivers of
+bankruptcy, making it a reliable model for this application.</p>
 <div id="conclusion" class="section level2" style="text-align: center;">
 <h2>Conclusion</h2>
 </div>
