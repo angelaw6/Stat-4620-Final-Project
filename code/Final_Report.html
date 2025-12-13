@@ -939,9 +939,38 @@ identify a company at risk of bankruptcy is far more costly than
 predicting a false alarm, sensitivity becomes the most important metric.
 Due to the fact that Ridge Regression not only maximizes sensitivity but
 also provides the highest AUC, it represents the most reliable and
-balanced model for our prediction task.</p>
+balanced model for our prediction task. In addition, the diagnostic
+plots, particularly the calibration curve and predicted probability
+distributions, show no major violations of Ridge Regression assumptions,
+further supporting its appropriateness for this dataset.</p>
 <p>Therefore, the final model selected was the Ridge Regression
 model.</p>
+<div id="challenges-faced" class="section level4" style="text-align: center;">
+<h4>Challenges Faced</h4>
+</div>
+<p>Throughout the modeling process, we encountered several challenges
+related to the structure of the bankruptcy dataset. The data was
+extremely imbalanced, with very few bankrupt firms, which made
+sensitivity a key concern and caused many baseline models to misclassify
+high-risk companies. In addition, the financial predictors showed strong
+multicollinearity and some nonlinear relationships, violating
+assumptions of traditional logistic models. Ridge Regression helped
+address these issues because its L2 penalty stabilizes coefficients in
+the presence of correlated variables, and its performance diagnostics
+suggested no major deviations from logistic model assumptions after
+regularization.</p>
+<p>We also explored several alternative models, each of which revealed
+specific limitations under these conditions. KNN struggled heavily with
+the curse of dimensionality and the imbalance problem, leading to poor
+minority-class detection. PLS regression handled multicollinearity but
+could not capture important nonlinear relationships in the data.
+Classification trees were highly unstable and prone to overfitting,
+especially given the noise and imbalance in the predictors. By
+evaluating these challenges and applying class balancing,
+regularization, and diagnostic validation, we determined that Ridge
+Regression offered most reliable combination of accuracy,
+interpretability, and robustness. Ultimately this made it the strongest
+model for predicting bankruptcy risk in this dataset.</p>
 <div id="model-validation" class="section level3" style="text-align: center;">
 <h3>Model Validation</h3>
 </div>
