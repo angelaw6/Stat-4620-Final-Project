@@ -1,7 +1,7 @@
 ---
 output:
-  html_document: default
   pdf_document: default
+  html_document: default
 ---
 <div style="text-align: center;">
   <h1>Company Bankruptcy Prediction</h1>
@@ -74,16 +74,28 @@ bad_vars <- sort(max_vals[max_vals > 1e4], decreasing = TRUE)
 bad_vars
 ```
 
-???
 
 <div style="text-align: center;">
-### Variable Types
+### Variable Types 
 </div>
 ```{r}
+ratio_vars <- sapply(train, function(x) all(x >= 0 & x <= 1, na.rm = TRUE))
+names(ratio_vars[ratio_vars == TRUE])
+names(ratio_vars[ratio_vars == FALSE])
 
 ```
 
-???
+Again the dataset contains 96 numeric predictors to describe the response variable. These predictors represent a wide range of financial measures but can broadly be grouped into 5 categories: 
+* Profitability
+  * Profitability measures describe a company's earnings relative to assets or equity and are variables like ROA A/B/C or Net Income to Total Assets.
+* Liquidity, Leverage, Turnover, and Cash Flow.
+  * Liquidity measures the company's ability to turn assets into cash to meet short term financial obligations and are variables like Current Ratio or Workign Capital to Total Assets. 
+* Leverage
+  * Leverage measures descibe the company's debt and captial structure and are variables like Debt Ratio and Total Debt Total Net Worth
+* Turnover 
+  * Turnover measures describe a company's efficiency of asset use and include variables like Cash Turnover Rate and Inventory Turnover Rate times. 
+* Cash Flow 
+  * Cash flow measures reflect the generation and allocatiion of cach within a company and include variables liek operting Cac Flow to Total Assets and Cash Current Liability. 
 
 <div style="text-align: center;">
 ### Missing Data
@@ -127,28 +139,59 @@ After accounting for undefined correlation caused by zero-variance predictors, a
 
 
 <div style="text-align: center;">
-### Potential Important Predictors
+### Potential Important Predictors 
 </div>
 ```{r}
+cor_matrix <- cor(train, use = "complete.obs")
+cor_response <- cor_matrix["Bankrupt.",]  # named vector
+cor_response
 
+# Table of top correlated vars to response
+data_frame(
+  Variable = names(cor_response),
+  Correlation = cor_response
+) %>%
+  filter(abs(Correlation) > 0.2) %>%
+  arrange(desc(abs(Correlation)))
+
+# Two sample T test
+pvals <- sapply(train[ , -which(names(train) %in% c("X","Bankrupt."))], 
+                function(x) {
+                  tryCatch(t.test(x ~ train$Bankrupt.)$p.value, 
+                           error = function(e) NA)
+                })
+
+sort(pvals)[1:15]
 ```
 
-???
+To identify some early signs of variables important in predicting bankruptcy, we did both correlation analysis with the response variable and two sample t-tests. Some notable variables narrowed down from both results are as such: 
+
+Profitability measurement:  
+* Net Income to Total Assets  
+* ROA A/B/C before interest and after tax
+  (these variables have high, near 1.0 correlation so either one of these variables could be selected)  
+Financial Leverage measurement:  
+* Debt ratio  
+Liquidity measurement:  
+* Working Capital to Total Assets  
+* Cash Total Assets  
+
+These early important variables include measures of profitability, leverage, and liquidity that are early signals of bankruptcy risk and may be important predictors later on. 
 
 <div style="text-align: center;">
-### Key Figures and Numerical Summaries
+### Key Figures and Numerical Summaries 
 </div>
 ```{r}
-
+summary(train$Bankrupt.)
+prop.table(table(train$Bankrupt.))
 ```
-
-???
+The response variable Bankruptcy is a binary variable that takes values of 0 or 1 to indicate if a company is or is not bankrupt. The numerical summary of the response variable in the training dataset shows that 97.07% of the dataset is 0s while only 2.93% of the dataset is 1s. This indicates that the dataset is very sparse and impalanced. This piece of information is important to note when thinking about potential modeling methods. 
 
 <div style="text-align: center;">
 ### Potential Models
 </div>
 ```{r}
-???
+#temp
 ```
 
 Overally, several numerical summaries capture the most important aspects of the data. Severe class imbalance resulted in only 3% of the firms in the training set being bankrupt, making it a rare event. There is separation in financial performance, and profitability, leverage, and earnings-related measures show strong differences between classes. Extreme outliers contain implausible values and magnitudes larger than expected. High redundancy exists, with predictors being nearly identical or strongly correlated. 

@@ -12,7 +12,7 @@ library(readr)
 library(ggplot2)
 library(dplyr)
 library(rlang)
-library(gridExtra)
+library(tidyverse)
 
 
 training_df <- read_csv("../data/train.csv")
@@ -29,7 +29,7 @@ The response variable is `Bankrupt.`, a binary classification of bankruptcy stat
 ```{r}
 # Preview of Dataset
 head(training_df)
-# It seems like the `...1` column is a meaningless automativally generated index value, not seen in the kaggle data description, so I remove it.
+# It seems like the `...1` column is a meaningless automativally generated index value, not seen in the kaggle data description, so I removed it.
 head(training_df$...1)
 training_df <- training_df %>%
   select(-...1)
@@ -70,6 +70,78 @@ for (var in vars) {
   print(p)
 }
 ```
+```{r}
+run_cor_test <- function(x, y) {
+  test <- cor.test(x, y)
+  tibble(
+    correlation = unname(test$estimate),
+    p_value = test$p.value
+  )
+}
+
+# Run cor.test on all predictors
+cor_test_results <- training_df %>%
+  select(-Bankrupt.) %>%
+  map_dfr(~ run_cor_test(.x, training_df$Bankrupt.)) %>%
+  mutate(variable = names(training_df)[names(training_df) != "Bankrupt."]) %>%
+  select(variable, correlation, p_value) %>%
+  arrange(desc(abs(correlation)))
+
+# View results
+temp <- head(cor_test_results, 15)
+temp$variable
+temp
+```
+
+Tree based importance stuff
+
+```{r}
+library(randomForest)
+
+# Make response a factor for classification
+training_df$Bankrupt. <- as.factor(training_df$Bankrupt.)
+
+# Fit a random forest
+rf_model <- randomForest(
+  Bankrupt. ~ ., 
+  data = training_df,
+  importance = TRUE
+)
+
+# Extract feature importance
+importance_df <- as.data.frame(rf_model$importance)
+
+# Sort by MeanDecreaseGini (or MeanDecreaseAccuracy)
+importance_df$variable <- rownames(importance_df)
+importance_df <- importance_df[order(-importance_df$MeanDecreaseGini), ]
+
+head(importance_df, 10)
+```
+
+
+```{r}
+run_cor_test <- function(x, y) {
+  test <- biserial.cor(x, y)
+  tibble(
+    correlation = unname(test$estimate),
+    p_value = test$p.value
+  )
+}
+
+# Run cor.test on all predictors
+cor_test_results <- training_df %>%
+  select(-Bankrupt.) %>%
+  map_dfr(~ run_cor_test(.x, training_df$Bankrupt.)) %>%
+  mutate(variable = names(training_df)[names(training_df) != "Bankrupt."]) %>%
+  select(variable, correlation, p_value) %>%
+  arrange(desc(abs(correlation)))
+
+# View results
+temp <- head(cor_test_results, 15)
+temp$variable
+temp
+```
+
 
 # Predictor collinearity
 ```{r}
@@ -95,7 +167,7 @@ There are a lot of highly correlated variables with Operatig Gross Margin having
 ```{r}
 # Compute correlation matrix & take out correlations with Bankrupt.
 cor_matrix <- cor(training_df, use = "complete.obs")
-cor_response <- cor_matrix["Bankrupt.", -1]  # named vector
+cor_response <- cor_matrix["Bankrupt.",]  # named vector
 cor_response
 
 # Table of top correlated vars to response
@@ -106,12 +178,31 @@ data_frame(
   filter(abs(Correlation) > 0.2) %>%
   arrange(desc(abs(Correlation)))
 ```
+```{r}
+pvals <- sapply(training_df[ , -which(names(training_df) %in% c("X","Bankrupt."))], 
+                function(x) {
+                  tryCatch(t.test(x ~ training_df$Bankrupt.)$p.value, 
+                           error = function(e) NA)
+                })
+
+sort(pvals)[1:15]
+```
 
 # Ending thoughts
 ```{r}
-summary(training_df$Bankrupt.)
-table(training_df$Bankrupt.)
-prop.table(table(training_df$Bankrupt.))
+ggplot(training_df, aes(x = factor(Bankrupt.), y = Debt.ratio.., fill = factor(Bankrupt.))) +
+  geom_boxplot() +
+  labs(x = "Bankrupt", y = "Debt Ratio")
+
+ggplot(training_df, aes(x = factor(Bankrupt.), y = Net.Income.to.Total.Assets, fill = factor(Bankrupt.))) +
+  geom_boxplot() +
+  labs(x = "Bankrupt", y = "Net income to Total Assets")
+
+ggplot(training_df, aes(x = factor(Bankrupt.), y = Net.worth.Assets, fill = factor(Bankrupt.))) +
+  geom_boxplot() +
+  labs(x = "Bankrupt", y = "Net worth Assets")
+
 ```
+
 It seems that the probability of a company going bankrupt is quite small and a lot less frequent. We know that many variables are strongly correlated to each other so some methods that may be most suitable is dimensionality reduction like PCA or PLS for logistic regression, or tree based models that handle multicollinearity beter. 
 
