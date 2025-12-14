@@ -1118,11 +1118,27 @@ demonstrated strong discriminative performance, stability under
 multicollinearity, and effective handling of the highly imbalanced class
 structure.</p>
 <p>Across the test set, Ridge achieved an accuracy of 0.8583, a
-sensitivity of 0.8625, and a specificity of 0.8581. Importantly, Ridge
-produced an AUC of .9318, indicating excellent ability to rank companies
-by bankruptcy risk. The model consistently assigns very low
-probabilities to healthy firms and high probabilities to bankrupt firms,
-as shown in the validation probability distribution plot.</p>
+sensitivity of 0.8625, and a specificity of 0.8581. Below are
+interpretations of these values in the context of the problem:</p>
+<ul>
+<li><p>85.83% of the time, the Ridge Regression model will correctly
+identify if a company will go bankrupt or not</p></li>
+<li><p>86.25% of the time, the Ridge Regression model will correctly
+identify a company that will go bankrupt</p></li>
+<li><p>85.81% of the time, the Ridge Regression model will correctly
+identify a company that will not go bankrupt</p></li>
+</ul>
+<p>Importantly, Ridge produced an AUC of .9318, indicating excellent
+ability to rank companies by bankruptcy risk. Below is the
+interpretation of this value in the context of the problem:</p>
+<ul>
+<li>The Ridge Regression model has a 93.18% chance of correctly ranking
+a randomly chosen bankrupt firm above a randomly chosen non-bankrupt
+firm</li>
+</ul>
+<p>The model consistently assigns very low probabilities to healthy
+firms and high probabilities to bankrupt firms, as shown in the
+validation probability distribution plot.</p>
 <p>Interpreting the final fitted model, the largest coefficient
 magnitudes indicate which financial ratios contribute most strongly to
 bankruptcy risk. Variables such as Debt Ratio, Current Liability to
