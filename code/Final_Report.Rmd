@@ -53,13 +53,25 @@ test <- read.csv("../data/test.csv")
 ## Exploratory Data Analysis
 </div>
 
-???
+This project analyzes a company bankruptcy dataset. The given information includes financial statements and other financial metrics, with the goal of understanding how financial factors play a role in predicting bankruptcy. The training dataset includes 4,773 observations and 97 variables. 96 are financial predictors that are numeric. The response variable, Bankruptcy, is a binary variable. It indicates whether a firm declared bankruptcy (1), or not (0). 
+
+Due to all predictors being numeric, and representing standardized or normalized financial ratios capturing firm performance, a careful exploratory analysis is needed to identify data quality issues, redundancy, and structural challenges that affect modeling.
+
+
 
 <div style="text-align: center;">
 ### Data Problems
+
+A review of summary statistics reveal significant data quality issues. First, there are many extreme and implausible values. Many predictors that represent ratios or rates contain extreme values from 10 to 10^10, which are not realistic for normalized financial measures. A list is provided below. 
+
 </div>
 ```{r}
+num_train <- train[, sapply(train, is.numeric)]
 
+max_vals <- apply(num_train, 2, max, na.rm = TRUE)
+
+bad_vars <- sort(max_vals[max_vals > 1e4], decreasing = TRUE)
+bad_vars
 ```
 
 ???
@@ -77,19 +89,42 @@ test <- read.csv("../data/test.csv")
 ### Missing Data
 </div>
 ```{r}
-
+colSums(is.na(train))
 ```
-
-???
+One positive about the dataset is that there are no missing values. A formal check showed that no missing values are present across any predictors or the response variable. Therefore, no deletion or augmentation of the data is needed. 
 
 <div style="text-align: center;">
 ### Collinearity Issues
 </div>
 ```{r}
+library(caret)
+library(dplyr)
+num_train <- train[, sapply(train, is.numeric)]
 
+nzv_idx <- nearZeroVar(num_train)
+clean_train <- num_train[, -nzv_idx]
+
+cor_mat <- cor(clean_train, use = "pairwise.complete.obs")
+
+high_corr_pairs <- sum(
+  abs(cor_mat[upper.tri(cor_mat)]) > 0.8,
+  na.rm = TRUE
+)
+
+high_corr_pairs
+
+top10_high_corr <- as.data.frame(as.table(cor_mat)) %>%
+  filter(Var1 != Var2, abs(Freq) > 0.8) %>%
+  mutate(abs_corr = abs(Freq)) %>%
+  arrange(desc(abs_corr)) %>%
+  slice(1:10)
+
+top10_high_corr
 ```
+There is significant collinearity among the predictors. Given the financial nature of the dataset, this is expected. Many financial figures and calculated metrics rely on core figures across the three financial statements. The expectation is confirmed through correlation analysis. 
 
-???
+After accounting for undefined correlation caused by zero-variance predictors, a pairwise correlation analysis shows that 43 distinct pairs of predictors exhibit absolute correlation values greater than 0.8. Some examples include Net Worth to Assets vs. Debt Ratio, and Operating Gross Margin vs. Gross profit to Sales.
+
 
 <div style="text-align: center;">
 ### Potential Important Predictors
@@ -113,10 +148,13 @@ test <- read.csv("../data/test.csv")
 ### Potential Models
 </div>
 ```{r}
-
+???
 ```
 
-???
+Overally, several numerical summaries capture the most important aspects of the data. Severe class imbalance resulted in only 3% of the firms in the training set being bankrupt, making it a rare event. There is separation in financial performance, and profitability, leverage, and earnings-related measures show strong differences between classes. Extreme outliers contain implausible values and magnitudes larger than expected. High redundancy exists, with predictors being nearly identical or strongly correlated. 
+
+To overcome these issues based on the EDA, there should be dimensionality reduction to address redundancy and the large number of predictors. Examination of regularization or tree-based methods should be prioritized over unregularized linear models. Finally, class imbalance must be explicitly handled, and the selection of the best model should emphasize sensitivity and recall rather than accuracy alone. 
+
 
 <div style="text-align: center;">
 ## Model Analysis
