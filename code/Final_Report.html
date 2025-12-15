@@ -371,35 +371,748 @@ December 14th, 2025
 <div id="exploratory-data-analysis" class="section level2" style="text-align: center;">
 <h2>Exploratory Data Analysis</h2>
 </div>
-<p>???</p>
+<p>This project analyzes a company bankruptcy dataset. The given
+information includes financial statements and other financial metrics,
+with the goal of understanding how financial factors play a role in
+predicting bankruptcy. The training dataset includes 4,773 observations
+and 97 variables. 96 are financial predictors that are numeric. The
+response variable, Bankruptcy, is a binary variable. It indicates
+whether a firm declared bankruptcy (1), or not (0).</p>
+<p>Due to all predictors being numeric, and representing standardized or
+normalized financial ratios capturing firm performance, a careful
+exploratory analysis is needed to identify data quality issues,
+redundancy, and structural challenges that affect modeling.</p>
 <div id="data-problems" class="section level3" style="text-align: center;">
 <h3>Data Problems</h3>
+<p>A review of summary statistics reveal significant data quality
+issues. First, there are many extreme and implausible values. Many
+predictors that represent ratios or rates contain extreme values from 10
+to 10^10, which are not realistic for normalized financial measures. A
+list is provided below.</p>
 </div>
-<p>???</p>
+<pre class="r"><code>num_train &lt;- train[, sapply(train, is.numeric)]
+
+max_vals &lt;- apply(num_train, 2, max, na.rm = TRUE)
+
+bad_vars &lt;- sort(max_vals[max_vals &gt; 1e4], decreasing = TRUE)
+bad_vars</code></pre>
+<pre><code>##                    Cash.Turnover.Rate                Operating.Expense.Rate 
+##                              1.00e+10                              9.99e+09 
+##               Total.Asset.Growth.Rate       Inventory.Turnover.Rate..times. 
+##                              9.99e+09                              9.99e+09 
+##       Fixed.Assets.Turnover.Frequency           Current.Asset.Turnover.Rate 
+##                              9.99e+09                              9.99e+09 
+##             Quick.Asset.Turnover.Rate Research.and.development.expense.rate 
+##                              9.99e+09                              9.98e+09 
+##            Total.debt.Total.net.worth           Inventory.Current.Liability 
+##                              9.94e+09                              9.91e+09 
+##             Total.assets.to.GNP.price          Accounts.Receivable.Turnover 
+##                              9.82e+09                              9.74e+09 
+##               Average.Collection.Days            Allocation.rate.per.person 
+##                              9.73e+09                              9.57e+09 
+## Long.term.Liability.to.Current.Assets                Cash.Current.Liability 
+##                              9.54e+09                              9.41e+09 
+##                 Net.Value.Growth.Rate                           Quick.Ratio 
+##                              9.33e+09                              9.23e+09 
+##        Quick.Assets.Current.Liability                    Revenue.per.person 
+##                              8.82e+09                              8.81e+09 
+##                Fixed.Assets.to.Assets            Revenue.Per.Share..Yuan... 
+##                              8.32e+09                              3.02e+09 
+##                         Current.Ratio   Interest.bearing.debt.interest.rate 
+##                              2.75e+09                              9.90e+08</code></pre>
 <div id="variable-types" class="section level3" style="text-align: center;">
 <h3>Variable Types</h3>
 </div>
-<p>???</p>
+<pre class="r"><code>ratio_vars &lt;- sapply(train, function(x) all(x &gt;= 0 &amp; x &lt;= 1, na.rm = TRUE))
+names(ratio_vars[ratio_vars == TRUE])</code></pre>
+<pre><code>##  [1] &quot;Bankrupt.&quot;                                              
+##  [2] &quot;ROA.C..before.interest.and.depreciation.before.interest&quot;
+##  [3] &quot;ROA.A..before.interest.and...after.tax&quot;                 
+##  [4] &quot;ROA.B..before.interest.and.depreciation.after.tax&quot;      
+##  [5] &quot;Operating.Gross.Margin&quot;                                 
+##  [6] &quot;Realized.Sales.Gross.Margin&quot;                            
+##  [7] &quot;Operating.Profit.Rate&quot;                                  
+##  [8] &quot;Pre.tax.net.Interest.Rate&quot;                              
+##  [9] &quot;After.tax.net.Interest.Rate&quot;                            
+## [10] &quot;Non.industry.income.and.expenditure.revenue&quot;            
+## [11] &quot;Continuous.interest.rate..after.tax.&quot;                   
+## [12] &quot;Cash.flow.rate&quot;                                         
+## [13] &quot;Tax.rate..A.&quot;                                           
+## [14] &quot;Net.Value.Per.Share..B.&quot;                                
+## [15] &quot;Net.Value.Per.Share..A.&quot;                                
+## [16] &quot;Net.Value.Per.Share..C.&quot;                                
+## [17] &quot;Persistent.EPS.in.the.Last.Four.Seasons&quot;                
+## [18] &quot;Cash.Flow.Per.Share&quot;                                    
+## [19] &quot;Operating.Profit.Per.Share..Yuan...&quot;                    
+## [20] &quot;Per.Share.Net.profit.before.tax..Yuan...&quot;               
+## [21] &quot;Realized.Sales.Gross.Profit.Growth.Rate&quot;                
+## [22] &quot;Operating.Profit.Growth.Rate&quot;                           
+## [23] &quot;After.tax.Net.Profit.Growth.Rate&quot;                       
+## [24] &quot;Regular.Net.Profit.Growth.Rate&quot;                         
+## [25] &quot;Continuous.Net.Profit.Growth.Rate&quot;                      
+## [26] &quot;Total.Asset.Return.Growth.Rate.Ratio&quot;                   
+## [27] &quot;Cash.Reinvestment..&quot;                                    
+## [28] &quot;Interest.Expense.Ratio&quot;                                 
+## [29] &quot;Debt.ratio..&quot;                                           
+## [30] &quot;Net.worth.Assets&quot;                                       
+## [31] &quot;Long.term.fund.suitability.ratio..A.&quot;                   
+## [32] &quot;Borrowing.dependency&quot;                                   
+## [33] &quot;Contingent.liabilities.Net.worth&quot;                       
+## [34] &quot;Operating.profit.Paid.in.capital&quot;                       
+## [35] &quot;Net.profit.before.tax.Paid.in.capital&quot;                  
+## [36] &quot;Inventory.and.accounts.receivable.Net.value&quot;            
+## [37] &quot;Total.Asset.Turnover&quot;                                   
+## [38] &quot;Net.Worth.Turnover.Rate..times.&quot;                        
+## [39] &quot;Operating.profit.per.person&quot;                            
+## [40] &quot;Working.Capital.to.Total.Assets&quot;                        
+## [41] &quot;Quick.Assets.Total.Assets&quot;                              
+## [42] &quot;Current.Assets.Total.Assets&quot;                            
+## [43] &quot;Cash.Total.Assets&quot;                                      
+## [44] &quot;Current.Liability.to.Assets&quot;                            
+## [45] &quot;Operating.Funds.to.Liability&quot;                           
+## [46] &quot;Inventory.Working.Capital&quot;                              
+## [47] &quot;Current.Liabilities.Liability&quot;                          
+## [48] &quot;Working.Capital.Equity&quot;                                 
+## [49] &quot;Current.Liabilities.Equity&quot;                             
+## [50] &quot;Retained.Earnings.to.Total.Assets&quot;                      
+## [51] &quot;Total.income.Total.expense&quot;                             
+## [52] &quot;Total.expense.Assets&quot;                                   
+## [53] &quot;Working.capitcal.Turnover.Rate&quot;                         
+## [54] &quot;Cash.Flow.to.Sales&quot;                                     
+## [55] &quot;Current.Liability.to.Liability&quot;                         
+## [56] &quot;Current.Liability.to.Equity&quot;                            
+## [57] &quot;Equity.to.Long.term.Liability&quot;                          
+## [58] &quot;Cash.Flow.to.Total.Assets&quot;                              
+## [59] &quot;Cash.Flow.to.Liability&quot;                                 
+## [60] &quot;CFO.to.Assets&quot;                                          
+## [61] &quot;Cash.Flow.to.Equity&quot;                                    
+## [62] &quot;Current.Liability.to.Current.Assets&quot;                    
+## [63] &quot;Liability.Assets.Flag&quot;                                  
+## [64] &quot;Net.Income.to.Total.Assets&quot;                             
+## [65] &quot;No.credit.Interval&quot;                                     
+## [66] &quot;Gross.Profit.to.Sales&quot;                                  
+## [67] &quot;Net.Income.to.Stockholder.s.Equity&quot;                     
+## [68] &quot;Liability.to.Equity&quot;                                    
+## [69] &quot;Degree.of.Financial.Leverage..DFL.&quot;                     
+## [70] &quot;Interest.Coverage.Ratio..Interest.expense.to.EBIT.&quot;     
+## [71] &quot;Net.Income.Flag&quot;                                        
+## [72] &quot;Equity.to.Liability&quot;</code></pre>
+<pre class="r"><code>names(ratio_vars[ratio_vars == FALSE])</code></pre>
+<pre><code>##  [1] &quot;X&quot;                                    
+##  [2] &quot;Operating.Expense.Rate&quot;               
+##  [3] &quot;Research.and.development.expense.rate&quot;
+##  [4] &quot;Interest.bearing.debt.interest.rate&quot;  
+##  [5] &quot;Revenue.Per.Share..Yuan...&quot;           
+##  [6] &quot;Total.Asset.Growth.Rate&quot;              
+##  [7] &quot;Net.Value.Growth.Rate&quot;                
+##  [8] &quot;Current.Ratio&quot;                        
+##  [9] &quot;Quick.Ratio&quot;                          
+## [10] &quot;Total.debt.Total.net.worth&quot;           
+## [11] &quot;Accounts.Receivable.Turnover&quot;         
+## [12] &quot;Average.Collection.Days&quot;              
+## [13] &quot;Inventory.Turnover.Rate..times.&quot;      
+## [14] &quot;Fixed.Assets.Turnover.Frequency&quot;      
+## [15] &quot;Revenue.per.person&quot;                   
+## [16] &quot;Allocation.rate.per.person&quot;           
+## [17] &quot;Quick.Assets.Current.Liability&quot;       
+## [18] &quot;Cash.Current.Liability&quot;               
+## [19] &quot;Inventory.Current.Liability&quot;          
+## [20] &quot;Long.term.Liability.to.Current.Assets&quot;
+## [21] &quot;Current.Asset.Turnover.Rate&quot;          
+## [22] &quot;Quick.Asset.Turnover.Rate&quot;            
+## [23] &quot;Cash.Turnover.Rate&quot;                   
+## [24] &quot;Fixed.Assets.to.Assets&quot;               
+## [25] &quot;Total.assets.to.GNP.price&quot;</code></pre>
+<p>Again the dataset contains 96 numeric predictors to describe the
+response variable. These predictors represent a wide range of financial
+measures but can broadly be grouped into 5 categories: * Profitability *
+Profitability measures describe a company’s earnings relative to assets
+or equity and are variables like ROA A/B/C or Net Income to Total
+Assets. * Liquidity, Leverage, Turnover, and Cash Flow. * Liquidity
+measures the company’s ability to turn assets into cash to meet short
+term financial obligations and are variables like Current Ratio or
+Workign Capital to Total Assets. * Leverage * Leverage measures descibe
+the company’s debt and captial structure and are variables like Debt
+Ratio and Total Debt Total Net Worth * Turnover * Turnover measures
+describe a company’s efficiency of asset use and include variables like
+Cash Turnover Rate and Inventory Turnover Rate times. * Cash Flow * Cash
+flow measures reflect the generation and allocatiion of cach within a
+company and include variables liek operting Cac Flow to Total Assets and
+Cash Current Liability.</p>
 <div id="missing-data" class="section level3" style="text-align: center;">
 <h3>Missing Data</h3>
 </div>
-<p>???</p>
+<pre class="r"><code>colSums(is.na(train))</code></pre>
+<pre><code>##                                                       X 
+##                                                       0 
+##                                               Bankrupt. 
+##                                                       0 
+## ROA.C..before.interest.and.depreciation.before.interest 
+##                                                       0 
+##                  ROA.A..before.interest.and...after.tax 
+##                                                       0 
+##       ROA.B..before.interest.and.depreciation.after.tax 
+##                                                       0 
+##                                  Operating.Gross.Margin 
+##                                                       0 
+##                             Realized.Sales.Gross.Margin 
+##                                                       0 
+##                                   Operating.Profit.Rate 
+##                                                       0 
+##                               Pre.tax.net.Interest.Rate 
+##                                                       0 
+##                             After.tax.net.Interest.Rate 
+##                                                       0 
+##             Non.industry.income.and.expenditure.revenue 
+##                                                       0 
+##                    Continuous.interest.rate..after.tax. 
+##                                                       0 
+##                                  Operating.Expense.Rate 
+##                                                       0 
+##                   Research.and.development.expense.rate 
+##                                                       0 
+##                                          Cash.flow.rate 
+##                                                       0 
+##                     Interest.bearing.debt.interest.rate 
+##                                                       0 
+##                                            Tax.rate..A. 
+##                                                       0 
+##                                 Net.Value.Per.Share..B. 
+##                                                       0 
+##                                 Net.Value.Per.Share..A. 
+##                                                       0 
+##                                 Net.Value.Per.Share..C. 
+##                                                       0 
+##                 Persistent.EPS.in.the.Last.Four.Seasons 
+##                                                       0 
+##                                     Cash.Flow.Per.Share 
+##                                                       0 
+##                              Revenue.Per.Share..Yuan... 
+##                                                       0 
+##                     Operating.Profit.Per.Share..Yuan... 
+##                                                       0 
+##                Per.Share.Net.profit.before.tax..Yuan... 
+##                                                       0 
+##                 Realized.Sales.Gross.Profit.Growth.Rate 
+##                                                       0 
+##                            Operating.Profit.Growth.Rate 
+##                                                       0 
+##                        After.tax.Net.Profit.Growth.Rate 
+##                                                       0 
+##                          Regular.Net.Profit.Growth.Rate 
+##                                                       0 
+##                       Continuous.Net.Profit.Growth.Rate 
+##                                                       0 
+##                                 Total.Asset.Growth.Rate 
+##                                                       0 
+##                                   Net.Value.Growth.Rate 
+##                                                       0 
+##                    Total.Asset.Return.Growth.Rate.Ratio 
+##                                                       0 
+##                                     Cash.Reinvestment.. 
+##                                                       0 
+##                                           Current.Ratio 
+##                                                       0 
+##                                             Quick.Ratio 
+##                                                       0 
+##                                  Interest.Expense.Ratio 
+##                                                       0 
+##                              Total.debt.Total.net.worth 
+##                                                       0 
+##                                            Debt.ratio.. 
+##                                                       0 
+##                                        Net.worth.Assets 
+##                                                       0 
+##                    Long.term.fund.suitability.ratio..A. 
+##                                                       0 
+##                                    Borrowing.dependency 
+##                                                       0 
+##                        Contingent.liabilities.Net.worth 
+##                                                       0 
+##                        Operating.profit.Paid.in.capital 
+##                                                       0 
+##                   Net.profit.before.tax.Paid.in.capital 
+##                                                       0 
+##             Inventory.and.accounts.receivable.Net.value 
+##                                                       0 
+##                                    Total.Asset.Turnover 
+##                                                       0 
+##                            Accounts.Receivable.Turnover 
+##                                                       0 
+##                                 Average.Collection.Days 
+##                                                       0 
+##                         Inventory.Turnover.Rate..times. 
+##                                                       0 
+##                         Fixed.Assets.Turnover.Frequency 
+##                                                       0 
+##                         Net.Worth.Turnover.Rate..times. 
+##                                                       0 
+##                                      Revenue.per.person 
+##                                                       0 
+##                             Operating.profit.per.person 
+##                                                       0 
+##                              Allocation.rate.per.person 
+##                                                       0 
+##                         Working.Capital.to.Total.Assets 
+##                                                       0 
+##                               Quick.Assets.Total.Assets 
+##                                                       0 
+##                             Current.Assets.Total.Assets 
+##                                                       0 
+##                                       Cash.Total.Assets 
+##                                                       0 
+##                          Quick.Assets.Current.Liability 
+##                                                       0 
+##                                  Cash.Current.Liability 
+##                                                       0 
+##                             Current.Liability.to.Assets 
+##                                                       0 
+##                            Operating.Funds.to.Liability 
+##                                                       0 
+##                               Inventory.Working.Capital 
+##                                                       0 
+##                             Inventory.Current.Liability 
+##                                                       0 
+##                           Current.Liabilities.Liability 
+##                                                       0 
+##                                  Working.Capital.Equity 
+##                                                       0 
+##                              Current.Liabilities.Equity 
+##                                                       0 
+##                   Long.term.Liability.to.Current.Assets 
+##                                                       0 
+##                       Retained.Earnings.to.Total.Assets 
+##                                                       0 
+##                              Total.income.Total.expense 
+##                                                       0 
+##                                    Total.expense.Assets 
+##                                                       0 
+##                             Current.Asset.Turnover.Rate 
+##                                                       0 
+##                               Quick.Asset.Turnover.Rate 
+##                                                       0 
+##                          Working.capitcal.Turnover.Rate 
+##                                                       0 
+##                                      Cash.Turnover.Rate 
+##                                                       0 
+##                                      Cash.Flow.to.Sales 
+##                                                       0 
+##                                  Fixed.Assets.to.Assets 
+##                                                       0 
+##                          Current.Liability.to.Liability 
+##                                                       0 
+##                             Current.Liability.to.Equity 
+##                                                       0 
+##                           Equity.to.Long.term.Liability 
+##                                                       0 
+##                               Cash.Flow.to.Total.Assets 
+##                                                       0 
+##                                  Cash.Flow.to.Liability 
+##                                                       0 
+##                                           CFO.to.Assets 
+##                                                       0 
+##                                     Cash.Flow.to.Equity 
+##                                                       0 
+##                     Current.Liability.to.Current.Assets 
+##                                                       0 
+##                                   Liability.Assets.Flag 
+##                                                       0 
+##                              Net.Income.to.Total.Assets 
+##                                                       0 
+##                               Total.assets.to.GNP.price 
+##                                                       0 
+##                                      No.credit.Interval 
+##                                                       0 
+##                                   Gross.Profit.to.Sales 
+##                                                       0 
+##                      Net.Income.to.Stockholder.s.Equity 
+##                                                       0 
+##                                     Liability.to.Equity 
+##                                                       0 
+##                      Degree.of.Financial.Leverage..DFL. 
+##                                                       0 
+##      Interest.Coverage.Ratio..Interest.expense.to.EBIT. 
+##                                                       0 
+##                                         Net.Income.Flag 
+##                                                       0 
+##                                     Equity.to.Liability 
+##                                                       0</code></pre>
+<p>One positive about the dataset is that there are no missing values. A
+formal check showed that no missing values are present across any
+predictors or the response variable. Therefore, no deletion or
+augmentation of the data is needed.</p>
 <div id="collinearity-issues" class="section level3" style="text-align: center;">
 <h3>Collinearity Issues</h3>
 </div>
-<p>???</p>
+<pre class="r"><code>library(caret)
+library(dplyr)
+num_train &lt;- train[, sapply(train, is.numeric)]
+
+nzv_idx &lt;- nearZeroVar(num_train)
+clean_train &lt;- num_train[, -nzv_idx]
+
+cor_mat &lt;- cor(clean_train, use = &quot;pairwise.complete.obs&quot;)
+
+high_corr_pairs &lt;- sum(
+  abs(cor_mat[upper.tri(cor_mat)]) &gt; 0.8,
+  na.rm = TRUE
+)
+
+high_corr_pairs</code></pre>
+<pre><code>## [1] 43</code></pre>
+<pre class="r"><code>top10_high_corr &lt;- as.data.frame(as.table(cor_mat)) %&gt;%
+  filter(Var1 != Var2, abs(Freq) &gt; 0.8) %&gt;%
+  mutate(abs_corr = abs(Freq)) %&gt;%
+  arrange(desc(abs_corr)) %&gt;%
+  slice(1:10)
+
+top10_high_corr</code></pre>
+<pre><code>##                              Var1                           Var2       Freq
+## 1  Current.Liability.to.Liability  Current.Liabilities.Liability  1.0000000
+## 2   Current.Liabilities.Liability Current.Liability.to.Liability  1.0000000
+## 3     Current.Liability.to.Equity     Current.Liabilities.Equity  1.0000000
+## 4      Current.Liabilities.Equity    Current.Liability.to.Equity  1.0000000
+## 5                Net.worth.Assets                   Debt.ratio.. -1.0000000
+## 6                    Debt.ratio..               Net.worth.Assets -1.0000000
+## 7           Gross.Profit.to.Sales         Operating.Gross.Margin  1.0000000
+## 8          Operating.Gross.Margin          Gross.Profit.to.Sales  1.0000000
+## 9         Net.Value.Per.Share..C.        Net.Value.Per.Share..A.  0.9998889
+## 10        Net.Value.Per.Share..A.        Net.Value.Per.Share..C.  0.9998889
+##     abs_corr
+## 1  1.0000000
+## 2  1.0000000
+## 3  1.0000000
+## 4  1.0000000
+## 5  1.0000000
+## 6  1.0000000
+## 7  1.0000000
+## 8  1.0000000
+## 9  0.9998889
+## 10 0.9998889</code></pre>
+<p>There is significant collinearity among the predictors. Given the
+financial nature of the dataset, this is expected. Many financial
+figures and calculated metrics rely on core figures across the three
+financial statements. The expectation is confirmed through correlation
+analysis.</p>
+<p>After accounting for undefined correlation caused by zero-variance
+predictors, a pairwise correlation analysis shows that 43 distinct pairs
+of predictors exhibit absolute correlation values greater than 0.8. Some
+examples include Net Worth to Assets vs. Debt Ratio, and Operating Gross
+Margin vs. Gross profit to Sales.</p>
 <div id="potential-important-predictors" class="section level3" style="text-align: center;">
 <h3>Potential Important Predictors</h3>
 </div>
-<p>???</p>
+<pre class="r"><code>cor_matrix &lt;- cor(train, use = &quot;complete.obs&quot;)</code></pre>
+<pre><code>## Warning in cor(train, use = &quot;complete.obs&quot;): the standard deviation is zero</code></pre>
+<pre class="r"><code>cor_response &lt;- cor_matrix[&quot;Bankrupt.&quot;,]  # named vector
+cor_response</code></pre>
+<pre><code>##                                                       X 
+##                                           -0.0938596816 
+##                                               Bankrupt. 
+##                                            1.0000000000 
+## ROA.C..before.interest.and.depreciation.before.interest 
+##                                           -0.2260161826 
+##                  ROA.A..before.interest.and...after.tax 
+##                                           -0.2445628571 
+##       ROA.B..before.interest.and.depreciation.after.tax 
+##                                           -0.2345945354 
+##                                  Operating.Gross.Margin 
+##                                           -0.0939077028 
+##                             Realized.Sales.Gross.Margin 
+##                                           -0.0933029954 
+##                                   Operating.Profit.Rate 
+##                                            0.0012908618 
+##                               Pre.tax.net.Interest.Rate 
+##                                           -0.0059899722 
+##                             After.tax.net.Interest.Rate 
+##                                           -0.0048505366 
+##             Non.industry.income.and.expenditure.revenue 
+##                                           -0.0152191818 
+##                    Continuous.interest.rate..after.tax. 
+##                                           -0.0057573202 
+##                                  Operating.Expense.Rate 
+##                                            0.0123724257 
+##                   Research.and.development.expense.rate 
+##                                           -0.0178427379 
+##                                          Cash.flow.rate 
+##                                           -0.0557248337 
+##                     Interest.bearing.debt.interest.rate 
+##                                           -0.0217692522 
+##                                            Tax.rate..A. 
+##                                           -0.1067976612 
+##                                 Net.Value.Per.Share..B. 
+##                                           -0.1589835617 
+##                                 Net.Value.Per.Share..A. 
+##                                           -0.1588391859 
+##                                 Net.Value.Per.Share..C. 
+##                                           -0.1580244349 
+##                 Persistent.EPS.in.the.Last.Four.Seasons 
+##                                           -0.1987615701 
+##                                     Cash.Flow.Per.Share 
+##                                           -0.0789321270 
+##                              Revenue.Per.Share..Yuan... 
+##                                           -0.0053400858 
+##                     Operating.Profit.Per.Share..Yuan... 
+##                                           -0.1183684544 
+##                Per.Share.Net.profit.before.tax..Yuan... 
+##                                           -0.1808249075 
+##                 Realized.Sales.Gross.Profit.Growth.Rate 
+##                                            0.0012274929 
+##                            Operating.Profit.Growth.Rate 
+##                                           -0.0163100372 
+##                        After.tax.Net.Profit.Growth.Rate 
+##                                           -0.0386900935 
+##                          Regular.Net.Profit.Growth.Rate 
+##                                           -0.0370081640 
+##                       Continuous.Net.Profit.Growth.Rate 
+##                                           -0.0105748227 
+##                                 Total.Asset.Growth.Rate 
+##                                           -0.0337085996 
+##                                   Net.Value.Growth.Rate 
+##                                            0.0820592196 
+##                    Total.Asset.Return.Growth.Rate.Ratio 
+##                                           -0.0111777879 
+##                                     Cash.Reinvestment.. 
+##                                           -0.0126787879 
+##                                           Current.Ratio 
+##                                           -0.0025164173 
+##                                             Quick.Ratio 
+##                                            0.0430428672 
+##                                  Interest.Expense.Ratio 
+##                                            0.0107993634 
+##                              Total.debt.Total.net.worth 
+##                                            0.0188273481 
+##                                            Debt.ratio.. 
+##                                            0.2390448621 
+##                                        Net.worth.Assets 
+##                                           -0.2390448621 
+##                    Long.term.fund.suitability.ratio..A. 
+##                                            0.0242901950 
+##                                    Borrowing.dependency 
+##                                            0.1547753863 
+##                        Contingent.liabilities.Net.worth 
+##                                            0.0255265042 
+##                        Operating.profit.Paid.in.capital 
+##                                           -0.1173562346 
+##                   Net.profit.before.tax.Paid.in.capital 
+##                                           -0.1847828359 
+##             Inventory.and.accounts.receivable.Net.value 
+##                                            0.0787909115 
+##                                    Total.Asset.Turnover 
+##                                           -0.0694551506 
+##                            Accounts.Receivable.Turnover 
+##                                           -0.0079618240 
+##                                 Average.Collection.Days 
+##                                           -0.0066507190 
+##                         Inventory.Turnover.Rate..times. 
+##                                           -0.0105448346 
+##                         Fixed.Assets.Turnover.Frequency 
+##                                            0.0857557744 
+##                         Net.Worth.Turnover.Rate..times. 
+##                                            0.0169551719 
+##                                      Revenue.per.person 
+##                                           -0.0025164172 
+##                             Operating.profit.per.person 
+##                                           -0.0907699683 
+##                              Allocation.rate.per.person 
+##                                            0.0079116568 
+##                         Working.Capital.to.Total.Assets 
+##                                           -0.1873566152 
+##                               Quick.Assets.Total.Assets 
+##                                           -0.0881585678 
+##                             Current.Assets.Total.Assets 
+##                                           -0.0450157484 
+##                                       Cash.Total.Assets 
+##                                           -0.1013003140 
+##                          Quick.Assets.Current.Liability 
+##                                           -0.0043505618 
+##                                  Cash.Current.Liability 
+##                                            0.1132805146 
+##                             Current.Liability.to.Assets 
+##                                            0.1897781436 
+##                            Operating.Funds.to.Liability 
+##                                           -0.0595376906 
+##                               Inventory.Working.Capital 
+##                                            0.0004334149 
+##                             Inventory.Current.Liability 
+##                                            0.0084767625 
+##                           Current.Liabilities.Liability 
+##                                           -0.0176924144 
+##                                  Working.Capital.Equity 
+##                                           -0.1179835315 
+##                              Current.Liabilities.Equity 
+##                                            0.1482736428 
+##                   Long.term.Liability.to.Current.Assets 
+##                                           -0.0012189337 
+##                       Retained.Earnings.to.Total.Assets 
+##                                           -0.1715043113 
+##                              Total.income.Total.expense 
+##                                           -0.0064916047 
+##                                    Total.expense.Assets 
+##                                            0.0916720392 
+##                             Current.Asset.Turnover.Rate 
+##                                            0.0222794815 
+##                               Quick.Asset.Turnover.Rate 
+##                                            0.0406364481 
+##                          Working.capitcal.Turnover.Rate 
+##                                           -0.0007204993 
+##                                      Cash.Turnover.Rate 
+##                                           -0.0103441966 
+##                                      Cash.Flow.to.Sales 
+##                                            0.0006874678 
+##                                  Fixed.Assets.to.Assets 
+##                                            0.0832754360 
+##                          Current.Liability.to.Liability 
+##                                           -0.0176924144 
+##                             Current.Liability.to.Equity 
+##                                            0.1482736428 
+##                           Equity.to.Long.term.Liability 
+##                                            0.1060623947 
+##                               Cash.Flow.to.Total.Assets 
+##                                           -0.0587967750 
+##                                  Cash.Flow.to.Liability 
+##                                           -0.0347354125 
+##                                           CFO.to.Assets 
+##                                           -0.0990611572 
+##                                     Cash.Flow.to.Equity 
+##                                           -0.0416007897 
+##                     Current.Liability.to.Current.Assets 
+##                                            0.1577326216 
+##                                   Liability.Assets.Flag 
+##                                            0.1340037929 
+##                              Net.Income.to.Total.Assets 
+##                                           -0.2657763958 
+##                               Total.assets.to.GNP.price 
+##                                            0.0164833970 
+##                                      No.credit.Interval 
+##                                           -0.0067983598 
+##                                   Gross.Profit.to.Sales 
+##                                           -0.0939066650 
+##                      Net.Income.to.Stockholder.s.Equity 
+##                                           -0.1281311740 
+##                                     Liability.to.Equity 
+##                                            0.1501458645 
+##                      Degree.of.Financial.Leverage..DFL. 
+##                                            0.0126984503 
+##      Interest.Coverage.Ratio..Interest.expense.to.EBIT. 
+##                                           -0.0017839641 
+##                                         Net.Income.Flag 
+##                                                      NA 
+##                                     Equity.to.Liability 
+##                                           -0.0736419415</code></pre>
+<pre class="r"><code># Table of top correlated vars to response
+data_frame(
+  Variable = names(cor_response),
+  Correlation = cor_response
+) %&gt;%
+  filter(abs(Correlation) &gt; 0.2) %&gt;%
+  arrange(desc(abs(Correlation)))</code></pre>
+<pre><code>## Warning: `data_frame()` was deprecated in tibble 1.1.0.
+## ℹ Please use `tibble()` instead.
+## This warning is displayed once every 8 hours.
+## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
+## generated.</code></pre>
+<pre><code>## # A tibble: 7 × 2
+##   Variable                                                Correlation
+##   &lt;chr&gt;                                                         &lt;dbl&gt;
+## 1 Bankrupt.                                                     1    
+## 2 Net.Income.to.Total.Assets                                   -0.266
+## 3 ROA.A..before.interest.and...after.tax                       -0.245
+## 4 Debt.ratio..                                                  0.239
+## 5 Net.worth.Assets                                             -0.239
+## 6 ROA.B..before.interest.and.depreciation.after.tax            -0.235
+## 7 ROA.C..before.interest.and.depreciation.before.interest      -0.226</code></pre>
+<pre class="r"><code># Two sample T test
+pvals &lt;- sapply(train[ , -which(names(train) %in% c(&quot;X&quot;,&quot;Bankrupt.&quot;))], 
+                function(x) {
+                  tryCatch(t.test(x ~ train$Bankrupt.)$p.value, 
+                           error = function(e) NA)
+                })
+
+sort(pvals)[1:15]</code></pre>
+<pre><code>##                                 Net.Value.Per.Share..A. 
+##                                            1.412168e-43 
+##                                 Net.Value.Per.Share..B. 
+##                                            1.445788e-43 
+##                                 Net.Value.Per.Share..C. 
+##                                            8.173172e-43 
+##                                        Net.worth.Assets 
+##                                            1.813348e-38 
+##                                            Debt.ratio.. 
+##                                            1.813348e-38 
+##                        Operating.profit.Paid.in.capital 
+##                                            1.619052e-36 
+##                                       Cash.Total.Assets 
+##                                            2.514499e-36 
+##                     Operating.Profit.Per.Share..Yuan... 
+##                                            1.244365e-35 
+##                Per.Share.Net.profit.before.tax..Yuan... 
+##                                            2.934616e-34 
+##                 Persistent.EPS.in.the.Last.Four.Seasons 
+##                                            3.074175e-34 
+##                   Net.profit.before.tax.Paid.in.capital 
+##                                            9.496499e-34 
+## ROA.C..before.interest.and.depreciation.before.interest 
+##                                            9.897180e-28 
+##                         Working.Capital.to.Total.Assets 
+##                                            3.723790e-26 
+##       ROA.B..before.interest.and.depreciation.after.tax 
+##                                            6.407999e-26 
+##                  ROA.A..before.interest.and...after.tax 
+##                                            2.502086e-23</code></pre>
+<p>To identify some early signs of variables important in predicting
+bankruptcy, we did both correlation analysis with the response variable
+and two sample t-tests. Some notable variables narrowed down from both
+results are as such:</p>
+<p>Profitability measurement:<br />
+* Net Income to Total Assets<br />
+* ROA A/B/C before interest and after tax (these variables have high,
+near 1.0 correlation so either one of these variables could be
+selected)<br />
+Financial Leverage measurement:<br />
+* Debt ratio<br />
+Liquidity measurement:<br />
+* Working Capital to Total Assets<br />
+* Cash Total Assets</p>
+<p>These early important variables include measures of profitability,
+leverage, and liquidity that are early signals of bankruptcy risk and
+may be important predictors later on.</p>
 <div id="key-figures-and-numerical-summaries" class="section level3" style="text-align: center;">
 <h3>Key Figures and Numerical Summaries</h3>
 </div>
-<p>???</p>
+<pre class="r"><code>summary(train$Bankrupt.)</code></pre>
+<pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+## 0.00000 0.00000 0.00000 0.02933 0.00000 1.00000</code></pre>
+<pre class="r"><code>prop.table(table(train$Bankrupt.))</code></pre>
+<pre><code>## 
+##          0          1 
+## 0.97066834 0.02933166</code></pre>
+<p>The response variable Bankruptcy is a binary variable that takes
+values of 0 or 1 to indicate if a company is or is not bankrupt. The
+numerical summary of the response variable in the training dataset shows
+that 97.07% of the dataset is 0s while only 2.93% of the dataset is 1s.
+This indicates that the dataset is very sparse and impalanced. This
+piece of information is important to note when thinking about potential
+modeling methods.</p>
 <div id="potential-models" class="section level3" style="text-align: center;">
 <h3>Potential Models</h3>
 </div>
-<p>???</p>
+<pre class="r"><code>#temp</code></pre>
+<p>Overally, several numerical summaries capture the most important
+aspects of the data. Severe class imbalance resulted in only 3% of the
+firms in the training set being bankrupt, making it a rare event. There
+is separation in financial performance, and profitability, leverage, and
+earnings-related measures show strong differences between classes.
+Extreme outliers contain implausible values and magnitudes larger than
+expected. High redundancy exists, with predictors being nearly identical
+or strongly correlated.</p>
+<p>To overcome these issues based on the EDA, there should be
+dimensionality reduction to address redundancy and the large number of
+predictors. Examination of regularization or tree-based methods should
+be prioritized over unregularized linear models. Finally, class
+imbalance must be explicitly handled, and the selection of the best
+model should emphasize sensitivity and recall rather than accuracy
+alone.</p>
 <div id="model-analysis" class="section level2" style="text-align: center;">
 <h2>Model Analysis</h2>
 </div>
