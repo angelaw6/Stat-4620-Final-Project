@@ -46,17 +46,15 @@ test <- read.csv("../data/test.csv")
 ## Introduction
 </div>
 
-???
+This project analyzes a company bankruptcy dataset. The given information includes financial statements and other financial metrics, with the goal of understanding how financial factors play a role in predicting bankruptcy. The training dataset includes 4,773 observations and 97 variables. 96 are financial predictors that are numeric. The response variable, Bankruptcy, is a binary variable. It indicates whether a firm declared bankruptcy (1), or not (0). 
+
+Due to all predictors being numeric, and representing standardized or normalized financial ratios capturing firm performance, a careful exploratory analysis is needed to identify data quality issues, redundancy, and structural challenges that affect modeling.
 
 <div style="text-align: center;">
 ## Exploratory Data Analysis
 </div>
 
-This project analyzes a company bankruptcy dataset. The given information includes financial statements and other financial metrics, with the goal of understanding how financial factors play a role in predicting bankruptcy. The training dataset includes 4,773 observations and 97 variables. 96 are financial predictors that are numeric. The response variable, Bankruptcy, is a binary variable. It indicates whether a firm declared bankruptcy (1), or not (0). 
-
-Due to all predictors being numeric, and representing standardized or normalized financial ratios capturing firm performance, a careful exploratory analysis is needed to identify data quality issues, redundancy, and structural challenges that affect modeling.
-
-
+First we performed exploratory data analysis on our dataset to help understand the the structure, quality, and key characteristics of the data. We examine variable types, potential data quality issues such as extreme values or missing data, relationships between predictors and the response, and early indications of which variables may be important for predicting bankruptcy.
 
 <div style="text-align: center;">
 ### Data Problems
@@ -84,17 +82,17 @@ names(ratio_vars[ratio_vars == FALSE])
 
 ```
 
-Again the dataset contains 96 numeric predictors to describe the response variable. These predictors represent a wide range of financial measures but can broadly be grouped into 5 categories: 
-* Profitability
-  * Profitability measures describe a company's earnings relative to assets or equity and are variables like ROA A/B/C or Net Income to Total Assets.
-* Liquidity, Leverage, Turnover, and Cash Flow.
-  * Liquidity measures the company's ability to turn assets into cash to meet short term financial obligations and are variables like Current Ratio or Workign Capital to Total Assets. 
-* Leverage
-  * Leverage measures descibe the company's debt and captial structure and are variables like Debt Ratio and Total Debt Total Net Worth
-* Turnover 
-  * Turnover measures describe a company's efficiency of asset use and include variables like Cash Turnover Rate and Inventory Turnover Rate times. 
-* Cash Flow 
-  * Cash flow measures reflect the generation and allocatiion of cach within a company and include variables liek operting Cac Flow to Total Assets and Cash Current Liability. 
+Again the dataset contains 96 numeric predictors to describe the response variable. These predictors represent a wide range of financial measures but can broadly be grouped into 5 categories:  
+
+Profitability
+  - Profitability measures describe a company's earnings relative to assets or equity and are variables like ROA A/B/C or Net Income to Total Assets.
+Liquidity
+  - Liquidity measures the company's ability to turn assets into cash to meet short term financial obligations and are variables like Current Ratio or Workign Capital to Total Assets. 
+Leverage
+  - Leverage measures descibe the company's debt and captial structure and are variables like Debt Ratio and Total Debt Total Net Worth
+Turnover 
+  - Turnover measures describe a company's efficiency of asset use and include variables like Cash Turnover Rate and Inventory Turnover Rate times. Cash Flow 
+- Cash flow measures reflect the generation and allocatiion of cach within a company and include variables liek operting Cac Flow to Total Assets and Cash Current Liability. 
 
 <div style="text-align: center;">
 ### Missing Data
@@ -165,15 +163,16 @@ sort(pvals)[1:15]
 
 To identify some early signs of variables important in predicting bankruptcy, we did both correlation analysis with the response variable and two sample t-tests. Some notable variables narrowed down from both results are as such: 
 
-Profitability measurement:  
-* Net Income to Total Assets  
-* ROA A/B/C before interest and after tax
-  (these variables have high, near 1.0 correlation so either one of these variables could be selected)  
+Profitability measurement:
+- Net Income to Total Assets
+- ROA A/B/C before interest and after tax (these variables have high, near 1.0 correlation so either one of these variables could be selected)  
+
 Financial Leverage measurement:  
-* Debt ratio  
-Liquidity measurement:  
-* Working Capital to Total Assets  
-* Cash Total Assets  
+- Debt ratio  
+
+Liquidity measurement:
+- Working Capital to Total Assets
+- Cash Total Assets  
 
 These early important variables include measures of profitability, leverage, and liquidity that are early signals of bankruptcy risk and may be important predictors later on. 
 
@@ -189,11 +188,7 @@ The response variable Bankruptcy is a binary variable that takes values of 0 or 
 <div style="text-align: center;">
 ### Potential Models
 </div>
-```{r}
-#temp
-```
-
-Overally, several numerical summaries capture the most important aspects of the data. Severe class imbalance resulted in only 3% of the firms in the training set being bankrupt, making it a rare event. There is separation in financial performance, and profitability, leverage, and earnings-related measures show strong differences between classes. Extreme outliers contain implausible values and magnitudes larger than expected. High redundancy exists, with predictors being nearly identical or strongly correlated. 
+Overall, several numerical summaries capture the most important aspects of the data. Severe class imbalance resulted in only 3% of the firms in the training set being bankrupt, making it a rare event. There is separation in financial performance, and profitability, leverage, and earnings-related measures show strong differences between classes. Extreme outliers contain implausible values and magnitudes larger than expected. High redundancy exists, with predictors being nearly identical or strongly correlated. 
 
 To overcome these issues based on the EDA, there should be dimensionality reduction to address redundancy and the large number of predictors. Examination of regularization or tree-based methods should be prioritized over unregularized linear models. Finally, class imbalance must be explicitly handled, and the selection of the best model should emphasize sensitivity and recall rather than accuracy alone. 
 
