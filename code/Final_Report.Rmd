@@ -1,12 +1,18 @@
 ---
 output:
   html_document: default
+editor_options: 
+  markdown: 
+    wrap: 72
 ---
-<div style="text-align: center;">
-  <h1>Company Bankruptcy Prediction</h1>
-  <h4>Angela Wei, Aditya Desai, Andrew Theiss, and Samuel Gadkar</h4>
-  <h4>December 14th, 2025</h4>
-</div>
+
+::: {style="text-align: center;"}
+<h1>Company Bankruptcy Prediction</h1>
+
+<h4>Angela Wei, Aditya Desai, Andrew Theiss, and Samuel Gadkar</h4>
+
+<h4>December 14th, 2025</h4>
+:::
 
 <br>
 
@@ -42,28 +48,44 @@ train <- read.csv("../data/train.csv")
 test <- read.csv("../data/test.csv")
 ```
 
-<div style="text-align: center;">
+::: {style="text-align: center;"}
 ## Introduction
-</div>
+:::
 
-???
+This project analyzes a company bankruptcy dataset. The given
+information includes financial statements and other financial metrics,
+with the goal of understanding how financial factors play a role in
+predicting bankruptcy. The training dataset includes 4,773 observations
+and 97 variables. 96 are financial predictors that are numeric. The
+response variable, Bankruptcy, is a binary variable. It indicates
+whether a firm declared bankruptcy (1), or not (0).
 
-<div style="text-align: center;">
+Due to all predictors being numeric, and representing standardized or
+normalized financial ratios capturing firm performance, a careful
+exploratory analysis is needed to identify data quality issues,
+redundancy, and structural challenges that affect modeling.
+
+::: {style="text-align: center;"}
 ## Exploratory Data Analysis
-</div>
+:::
 
-This project analyzes a company bankruptcy dataset. The given information includes financial statements and other financial metrics, with the goal of understanding how financial factors play a role in predicting bankruptcy. The training dataset includes 4,773 observations and 97 variables. 96 are financial predictors that are numeric. The response variable, Bankruptcy, is a binary variable. It indicates whether a firm declared bankruptcy (1), or not (0). 
+First we performed exploratory data analysis on our dataset to help
+understand the the structure, quality, and key characteristics of the
+data. We examine variable types, potential data quality issues such as
+extreme values or missing data, relationships between predictors and the
+response, and early indications of which variables may be important for
+predicting bankruptcy.
 
-Due to all predictors being numeric, and representing standardized or normalized financial ratios capturing firm performance, a careful exploratory analysis is needed to identify data quality issues, redundancy, and structural challenges that affect modeling.
-
-
-
-<div style="text-align: center;">
+::: {style="text-align: center;"}
 ### Data Problems
 
-A review of summary statistics reveal significant data quality issues. First, there are many extreme and implausible values. Many predictors that represent ratios or rates contain extreme values from 10 to 10^10, which are not realistic for normalized financial measures. A list is provided below. 
+A review of summary statistics reveal significant data quality issues.
+First, there are many extreme and implausible values. Many predictors
+that represent ratios or rates contain extreme values from 10 to 10\^10,
+which are not realistic for normalized financial measures. A list is
+provided below.
+:::
 
-</div>
 ```{r}
 num_train <- train[, sapply(train, is.numeric)]
 
@@ -73,40 +95,66 @@ bad_vars <- sort(max_vals[max_vals > 1e4], decreasing = TRUE)
 bad_vars
 ```
 
+::: {style="text-align: center;"}
+### Variable Types
+:::
 
-<div style="text-align: center;">
-### Variable Types 
-</div>
 ```{r}
-ratio_vars <- sapply(train, function(x) all(x >= 0 & x <= 1, na.rm = TRUE))
-names(ratio_vars[ratio_vars == TRUE])
-names(ratio_vars[ratio_vars == FALSE])
+names(train[,-1])
 
 ```
 
-Again the dataset contains 96 numeric predictors to describe the response variable. These predictors represent a wide range of financial measures but can broadly be grouped into 5 categories: 
-* Profitability
-  * Profitability measures describe a company's earnings relative to assets or equity and are variables like ROA A/B/C or Net Income to Total Assets.
-* Liquidity, Leverage, Turnover, and Cash Flow.
-  * Liquidity measures the company's ability to turn assets into cash to meet short term financial obligations and are variables like Current Ratio or Workign Capital to Total Assets. 
-* Leverage
-  * Leverage measures descibe the company's debt and captial structure and are variables like Debt Ratio and Total Debt Total Net Worth
-* Turnover 
-  * Turnover measures describe a company's efficiency of asset use and include variables like Cash Turnover Rate and Inventory Turnover Rate times. 
-* Cash Flow 
-  * Cash flow measures reflect the generation and allocatiion of cach within a company and include variables liek operting Cac Flow to Total Assets and Cash Current Liability. 
+Again the dataset contains 96 numeric predictors to describe the
+response variable. These predictors represent a wide range of financial
+measures but can broadly be grouped into 5 categories:
 
-<div style="text-align: center;">
+-   Profitability
+
+    -   Profitability measures describe a company's earnings relative to
+        assets or equity and are variables like ROA A/B/C or Net Income
+        to Total Assets.
+
+-   Liquidity
+
+    -   Liquidity measures the company's ability to turn assets into
+        cash to meet short term financial obligations and are variables
+        like Current Ratio or Workign Capital to Total Assets.
+
+-   Leverage
+
+    -   Leverage measures describe the company's debt and captial
+        structure and are variables like Debt Ratio and Total Debt Total
+        Net Worth
+
+-   Turnover
+
+    -   Turnover measures describe a company's efficiency of asset use
+        and include variables like Cash Turnover Rate and Inventory
+        Turnover Rate times.
+
+-   Cash Flow
+
+    -   Cash flow measures reflect the generation and allocatiion of
+        cach within a company and include variables liek operting Cac
+        Flow to Total Assets and Cash Current Liability.
+
+::: {style="text-align: center;"}
 ### Missing Data
-</div>
+:::
+
 ```{r}
 colSums(is.na(train))
 ```
-One positive about the dataset is that there are no missing values. A formal check showed that no missing values are present across any predictors or the response variable. Therefore, no deletion or augmentation of the data is needed. 
 
-<div style="text-align: center;">
+One positive about the dataset is that there are no missing values. A
+formal check showed that no missing values are present across any
+predictors or the response variable. Therefore, no deletion or
+augmentation of the data is needed.
+
+::: {style="text-align: center;"}
 ### Collinearity Issues
-</div>
+:::
+
 ```{r}
 library(caret)
 library(dplyr)
@@ -132,18 +180,26 @@ top10_high_corr <- as.data.frame(as.table(cor_mat)) %>%
 
 top10_high_corr
 ```
-There is significant collinearity among the predictors. Given the financial nature of the dataset, this is expected. Many financial figures and calculated metrics rely on core figures across the three financial statements. The expectation is confirmed through correlation analysis. 
 
-After accounting for undefined correlation caused by zero-variance predictors, a pairwise correlation analysis shows that 43 distinct pairs of predictors exhibit absolute correlation values greater than 0.8. Some examples include Net Worth to Assets vs. Debt Ratio, and Operating Gross Margin vs. Gross profit to Sales.
+There is significant collinearity among the predictors. Given the
+financial nature of the dataset, this is expected. Many financial
+figures and calculated metrics rely on core figures across the three
+financial statements. The expectation is confirmed through correlation
+analysis.
 
+After accounting for undefined correlation caused by zero-variance
+predictors, a pairwise correlation analysis shows that 43 distinct pairs
+of predictors exhibit absolute correlation values greater than 0.8. Some
+examples include Net Worth to Assets vs. Debt Ratio, and Operating Gross
+Margin vs. Gross profit to Sales.
 
-<div style="text-align: center;">
-### Potential Important Predictors 
-</div>
+::: {style="text-align: center;"}
+### Potential Important Predictors
+:::
+
 ```{r}
 cor_matrix <- cor(train, use = "complete.obs")
 cor_response <- cor_matrix["Bankrupt.",]  # named vector
-cor_response
 
 # Table of top correlated vars to response
 data_frame(
@@ -163,64 +219,113 @@ pvals <- sapply(train[ , -which(names(train) %in% c("X","Bankrupt."))],
 sort(pvals)[1:15]
 ```
 
-To identify some early signs of variables important in predicting bankruptcy, we did both correlation analysis with the response variable and two sample t-tests. Some notable variables narrowed down from both results are as such: 
+To identify some early signs of variables important in predicting
+bankruptcy, we did both correlation analysis with the response variable
+and two sample t-tests. Some notable variables narrowed down from both
+results are as such:
 
-Profitability measurement:  
-* Net Income to Total Assets  
-* ROA A/B/C before interest and after tax
-  (these variables have high, near 1.0 correlation so either one of these variables could be selected)  
-Financial Leverage measurement:  
-* Debt ratio  
-Liquidity measurement:  
-* Working Capital to Total Assets  
-* Cash Total Assets  
+Profitability measurement:
 
-These early important variables include measures of profitability, leverage, and liquidity that are early signals of bankruptcy risk and may be important predictors later on. 
+-   Net Income to Total Assets
 
-<div style="text-align: center;">
-### Key Figures and Numerical Summaries 
-</div>
+-   ROA A/B/C before interest and after tax (these variables have high,
+    near 1.0 correlation so either one of these variables could be
+    selected)
+
+Financial Leverage measurement:
+
+-   Debt ratio
+
+Liquidity measurement:
+
+-   Working Capital to Total Assets
+
+<!-- -->
+
+-   Cash Total Assets
+
+These early important variables include measures of profitability,
+leverage, and liquidity that are early signals of bankruptcy risk and
+may be important predictors later on.
+
+::: {style="text-align: center;"}
+### Key Figures and Numerical Summaries
+:::
+
 ```{r}
 summary(train$Bankrupt.)
 prop.table(table(train$Bankrupt.))
 ```
-The response variable Bankruptcy is a binary variable that takes values of 0 or 1 to indicate if a company is or is not bankrupt. The numerical summary of the response variable in the training dataset shows that 97.07% of the dataset is 0s while only 2.93% of the dataset is 1s. This indicates that the dataset is very sparse and impalanced. This piece of information is important to note when thinking about potential modeling methods. 
 
-<div style="text-align: center;">
+The response variable Bankruptcy is a binary variable that takes values
+of 0 or 1 to indicate if a company is or is not bankrupt. The numerical
+summary of the response variable in the training dataset shows that
+97.07% of the dataset is 0s while only 2.93% of the dataset is 1s. This
+indicates that the dataset is very sparse and impalanced. This piece of
+information is important to note when thinking about potential modeling
+methods.
+
+::: {style="text-align: center;"}
 ### Potential Models
-</div>
-```{r}
-#temp
-```
+:::
 
-Overally, several numerical summaries capture the most important aspects of the data. Severe class imbalance resulted in only 3% of the firms in the training set being bankrupt, making it a rare event. There is separation in financial performance, and profitability, leverage, and earnings-related measures show strong differences between classes. Extreme outliers contain implausible values and magnitudes larger than expected. High redundancy exists, with predictors being nearly identical or strongly correlated. 
+Overall, several numerical summaries capture the most important aspects
+of the data. Severe class imbalance resulted in only 3% of the firms in
+the training set being bankrupt, making it a rare event. There is
+separation in financial performance, and profitability, leverage, and
+earnings-related measures show strong differences between classes.
+Extreme outliers contain implausible values and magnitudes larger than
+expected. High redundancy exists, with predictors being nearly identical
+or strongly correlated.
 
-To overcome these issues based on the EDA, there should be dimensionality reduction to address redundancy and the large number of predictors. Examination of regularization or tree-based methods should be prioritized over unregularized linear models. Finally, class imbalance must be explicitly handled, and the selection of the best model should emphasize sensitivity and recall rather than accuracy alone. 
+To overcome these issues based on the EDA, there should be
+dimensionality reduction to address redundancy and the large number of
+predictors. Examination of regularization or tree-based methods should
+be prioritized over unregularized linear models. Finally, class
+imbalance must be explicitly handled, and the selection of the best
+model should emphasize sensitivity and recall rather than accuracy
+alone.
 
-
-<div style="text-align: center;">
+::: {style="text-align: center;"}
 ## Model Analysis
-</div>
+:::
 
-<div style="text-align: center;">
+::: {style="text-align: center;"}
 ### Investigated Models, Description, and Assumptions
-</div>
+:::
 
-Prior to our exploratory data analysis, we planned to train and test our data using three methods: KNN, PLS, and Classification/Regression Trees. However, after analyzing the structure of our data and evaluating initial model performance, several issues became clear:
+Prior to our exploratory data analysis, we planned to train and test our
+data using three methods: KNN, PLS, and Classification/Regression Trees.
+However, after analyzing the structure of our data and evaluating
+initial model performance, several issues became clear:
 
-- Extreme Class Imbalance: Bankruptcy cases make up only a small fraction of the dataset, causing these methods ot default to predicting the majority class.
+-   Extreme Class Imbalance: Bankruptcy cases make up only a small
+    fraction of the dataset, causing these methods ot default to
+    predicting the majority class.
 
-- High-Dimensional Numeric Ratios: The dataset contains many correlated financial ratios, which introduces noise and instability, especially harmful for KNN and PLS.
+-   High-Dimensional Numeric Ratios: The dataset contains many
+    correlated financial ratios, which introduces noise and instability,
+    especially harmful for KNN and PLS.
 
-- Nonlinear Relationships: The relationship between financial predictors and bankruptcy risk is highly nonlinear, limiting the effectiveness of simple tree models and linear projections.
+-   Nonlinear Relationships: The relationship between financial
+    predictors and bankruptcy risk is highly nonlinear, limiting the
+    effectiveness of simple tree models and linear projections.
 
-- Overlapping Distributions: Bankrupt and non-bankrupt have very similar predictor values, making it difficult for distance-based or linear-separation methods to distinguish between classes.
+-   Overlapping Distributions: Bankrupt and non-bankrupt have very
+    similar predictor values, making it difficult for distance-based or
+    linear-separation methods to distinguish between classes.
 
-Given these challenges, we shifted our focus to models that are more robust to imbalance, multicollinearity, and complex structure. Specifically, we explored Ridge Regression, LASSO, Bagging, and Random Forest, which provided significantly stronger performance and more stable predictions. We examine these models and their results in the following sections.
+Given these challenges, we shifted our focus to models that are more
+robust to imbalance, multicollinearity, and complex structure.
+Specifically, we explored Ridge Regression, LASSO, Bagging, and Random
+Forest, which provided significantly stronger performance and more
+stable predictions. We examine these models and their results in the
+following sections.
 
-<div style="text-align: center;">
+::: {style="text-align: center;"}
 #### Ridge Regression
-</div>
+:::
+
 ```{r, include = FALSE}
 # Setup Ridge Data
 train_ridge <- train
@@ -286,49 +391,74 @@ sensitivity_ridge
 specificity_ridge
 ```
 
-The first model we explored was Ridge Regression, which is well-suited for datasets with highly correlated predictors, many numerical variables, substantial noise, and class imbalance—all characteristics that appeared in our exploratory analysis. Because Ridge is designed to stabilize coefficient estimates in these settings, it was a strong candidate for our bankruptcy prediction task.
+The first model we explored was Ridge Regression, which is well-suited
+for datasets with highly correlated predictors, many numerical
+variables, substantial noise, and class imbalance—all characteristics
+that appeared in our exploratory analysis. Because Ridge is designed to
+stabilize coefficient estimates in these settings, it was a strong
+candidate for our bankruptcy prediction task.
 
-Definition and Formula: Ridge Regression estimates the coefficients by minimizing the usual sum of squared errors subject ot an L2 penalty that shrinks the coefficients towards zero:
+Definition and Formula: Ridge Regression estimates the coefficients by
+minimizing the usual sum of squared errors subject ot an L2 penalty that
+shrinks the coefficients towards zero:
 
-<div style="text-align: center;">
-$\hat\beta_{Ridge} = argmin_{\beta} \sum_{i=1}^n (y_i - \beta_0 - \sum_{j=1}^p \beta_jx_{ij}) ^ 2$ subject to $\sum_{j=1}^p \beta_j^2 \le s$
-</div>
+::: {style="text-align: center;"}
+$\hat\beta_{Ridge} = argmin_{\beta} \sum_{i=1}^n (y_i - \beta_0 - \sum_{j=1}^p \beta_jx_{ij}) ^ 2$
+subject to $\sum_{j=1}^p \beta_j^2 \le s$
+:::
 
-Here: 
+Here:
 
-* $\lambda \ge 0$ is the tuning parameter controlling shrinkage
+-   $\lambda \ge 0$ is the tuning parameter controlling shrinkage
 
-* Larger $\lambda$ forces coefficients toward 0 (reducing variance)
+-   Larger $\lambda$ forces coefficients toward 0 (reducing variance)
 
-*  Ridge is useful when predictors are highlight correlated, numerous, or the model risks overfitting
+-   Ridge is useful when predictors are highlight correlated, numerous,
+    or the model risks overfitting
 
-Assumptions: Ridge Regression inherits the assumptions of logistic regression, but relaxes some of them through its L2 penalty
+Assumptions: Ridge Regression inherits the assumptions of logistic
+regression, but relaxes some of them through its L2 penalty
 
-1. Linearity of log-odds: The model assumes a linear relationship between predictors and the log-odds of bankruptcy
+1.  Linearity of log-odds: The model assumes a linear relationship
+    between predictors and the log-odds of bankruptcy
 
-    a. Our check: Probability plots show some nonlinear patterns, meaning this assumption is not fully met
+    a.  Our check: Probability plots show some nonlinear patterns,
+        meaning this assumption is not fully met
 
-    b. Why acceptable: Ridge is robust to mild misspecification because shrinkage stabilizes coefficients
+    b.  Why acceptable: Ridge is robust to mild misspecification because
+        shrinkage stabilizes coefficients
 
-2. No perfect multicollinearity: Predictors should ot be perfectly correlated
+2.  No perfect multicollinearity: Predictors should ot be perfectly
+    correlated
 
-    a. Our check: Many financial ratios are highly correlated
+    a.  Our check: Many financial ratios are highly correlated
 
-    b. Why acceptable: This is exactly what Ridge is designed for; L2 regularization handles multicollinearity by shrinking correlated coefficients together
+    b.  Why acceptable: This is exactly what Ridge is designed for; L2
+        regularization handles multicollinearity by shrinking correlated
+        coefficients together
 
-3. Independent observations: Each row must represent an independent company
+3.  Independent observations: Each row must represent an independent
+    company
 
-    a. Our check: Firms appear only once, so this assumption is satisfied
+    a.  Our check: Firms appear only once, so this assumption is
+        satisfied
 
-4. Reasonable class balance: Logistic regression is sensitive to imbalance
+4.  Reasonable class balance: Logistic regression is sensitive to
+    imbalance
 
-    a. Our check: The data is extremely imbalanced
+    a.  Our check: The data is extremely imbalanced
 
-    b. How addressed: We used class weights in the Ridge model to compensate
+    b.  How addressed: We used class weights in the Ridge model to
+        compensate
 
-Assumption Summary: Although the dataset violates the linearity and balance assumptions, Ridge Regression remains appropriate because the L2 penalty directly addresses multicollinearity, reduces variance, and performs well in noisy, high-dimensional settings, as supported by its strong AUC and sensitivity in our results.
+Assumption Summary: Although the dataset violates the linearity and
+balance assumptions, Ridge Regression remains appropriate because the L2
+penalty directly addresses multicollinearity, reduces variance, and
+performs well in noisy, high-dimensional settings, as supported by its
+strong AUC and sensitivity in our results.
 
-After training the model and evaluating it on the test set, we obtained the following confusion matrix:
+After training the model and evaluating it on the test set, we obtained
+the following confusion matrix:
 
 ```{r, echo = FALSE}
 cm <- conf_mat_ridge$table
@@ -339,19 +469,30 @@ kable(cm, caption = "Ridge Regression Confusion Matrix")
 
 From this output, we calculated several performance metrics:
 
-- Accuracy = 0.8583 - The model correctly classified about 86% of all firms in the test set.
+-   Accuracy = 0.8583 - The model correctly classified about 86% of all
+    firms in the test set.
 
-- Sensitivity = 0.8625 - The model correctly identified approximately 86% of actual bankrupt companies, which is important given our goal of catching high-risk firms.
+-   Sensitivity = 0.8625 - The model correctly identified approximately
+    86% of actual bankrupt companies, which is important given our goal
+    of catching high-risk firms.
 
-- Specificity = 0.8581 - About 86% of non-bankrupt firms were correctly labeled, indicating strong performance on the majority class.
+-   Specificity = 0.8581 - About 86% of non-bankrupt firms were
+    correctly labeled, indicating strong performance on the majority
+    class.
 
-- AUC = 0.9318 - This value shows that Ridge Regression is excellent at separating bankrupt vs. non-bankrupt firms across all classification thresholds, reflecting strong overall discriminative ability.
+-   AUC = 0.9318 - This value shows that Ridge Regression is excellent
+    at separating bankrupt vs. non-bankrupt firms across all
+    classification thresholds, reflecting strong overall discriminative
+    ability.
 
-Overall, Ridge Regression performs well on this dataset and effectively balances sensitivity and specificity, making it a strong foundation for further analysis.
+Overall, Ridge Regression performs well on this dataset and effectively
+balances sensitivity and specificity, making it a strong foundation for
+further analysis.
 
-<div style="text-align: center;">
+::: {style="text-align: center;"}
 #### LASSO
-</div>
+:::
+
 ```{r, include = FALSE}
 # Setup LASSO Data
 train_lasso <- train
@@ -417,51 +558,77 @@ sensitivity_lasso
 specificity_lasso
 ```
 
-The next model we evaluated was LASSO Regression, which is particularly useful for datasets with many predictors and potential redundancy. Unlike Ridge, which shrinks all coefficients, LASSO can set some coefficients to zero, effectively performing feature selection. Given the high dimensionality of the financial ratios in our dataset, LASSO was a strong candidate because it helps identify the most important predictors while reducing noise.
+The next model we evaluated was LASSO Regression, which is particularly
+useful for datasets with many predictors and potential redundancy.
+Unlike Ridge, which shrinks all coefficients, LASSO can set some
+coefficients to zero, effectively performing feature selection. Given
+the high dimensionality of the financial ratios in our dataset, LASSO
+was a strong candidate because it helps identify the most important
+predictors while reducing noise.
 
-Definition and Formula: LASSO (Least Absolute Shrinkage and Selection Operator) estimates the coefficients by minimizing the sum of squared errors subject to an L1 penalty, which both shrinks coefficients and can set some exactly to zero (performing variable selection)
+Definition and Formula: LASSO (Least Absolute Shrinkage and Selection
+Operator) estimates the coefficients by minimizing the sum of squared
+errors subject to an L1 penalty, which both shrinks coefficients and can
+set some exactly to zero (performing variable selection)
 
-<div style="text-align: center;">
-$\hat\beta_{LASSO} = argmin_{\beta} \sum_{i=1}^n (y_i - \beta_0 - \sum_{j=1}^p \beta_jx_{ij}) ^ 2$ subject to $\sum_{j=1}^p |\beta_j| \le s$
-</div>
+::: {style="text-align: center;"}
+$\hat\beta_{LASSO} = argmin_{\beta} \sum_{i=1}^n (y_i - \beta_0 - \sum_{j=1}^p \beta_jx_{ij}) ^ 2$
+subject to $\sum_{j=1}^p |\beta_j| \le s$
+:::
 
 Here:
 
-* $\lambda \ge 0$ controls the amount of shrinkage 
+-   $\lambda \ge 0$ controls the amount of shrinkage
 
-* The L1 penalty forces some coefficients exactly to zero 
+-   The L1 penalty forces some coefficients exactly to zero
 
-* LASSO is especially useful when feature selection is desired or when many predictors are irrelevant 
+-   LASSO is especially useful when feature selection is desired or when
+    many predictors are irrelevant
 
-Assumptions: LASSO relies on the same core assumptions as logistic regression, but its L1 penalty adds sparsity and variable selection.
+Assumptions: LASSO relies on the same core assumptions as logistic
+regression, but its L1 penalty adds sparsity and variable selection.
 
-1. Linearity of the log-odds: The model assumes a linear relationship between predictors and the log-odds of bankruptcy
+1.  Linearity of the log-odds: The model assumes a linear relationship
+    between predictors and the log-odds of bankruptcy
 
-    a. Our check: Probability plots showed some nonlinear patterns, so this assumption is not perfectly met
+    a.  Our check: Probability plots showed some nonlinear patterns, so
+        this assumption is not perfectly met
 
-    b. Why acceptable: LASSO's regularization helps reduce overfitting even when the relationship is not perfectly linear
+    b.  Why acceptable: LASSO's regularization helps reduce overfitting
+        even when the relationship is not perfectly linear
 
-2. No perfect multicollinearity: Predictors should not be perfectly correlated
+2.  No perfect multicollinearity: Predictors should not be perfectly
+    correlated
 
-    a. Our check: Financial ratios are strongly correlated
+    a.  Our check: Financial ratios are strongly correlated
 
-    b. Issue: LASSO tends to pick one variable from a correlated group and discard the rest, which can create instability.
+    b.  Issue: LASSO tends to pick one variable from a correlated group
+        and discard the rest, which can create instability.
 
-    c. Why acceptable: This behavior is actually useful for variable selection, and the model still performed well in testing.
+    c.  Why acceptable: This behavior is actually useful for variable
+        selection, and the model still performed well in testing.
 
-3. Independent observations: Each observation should be independent
+3.  Independent observations: Each observation should be independent
 
-    a. Our check: Each company appears once, so this assumption is satisfied
+    a.  Our check: Each company appears once, so this assumption is
+        satisfied
 
-4. Class balance: Logistic-based models can struggle with extreme imbalance
+4.  Class balance: Logistic-based models can struggle with extreme
+    imbalance
 
-    a. Our check: The dataset is highly imbalanced
+    a.  Our check: The dataset is highly imbalanced
 
-    b. How addressed: Class weights were used to reduce bias toward the majority class
+    b.  How addressed: Class weights were used to reduce bias toward the
+        majority class
 
-Assumption Summary: LASSO does not perfectly satisfy linearity or balance assumptions, and its variable selection can be unstable under multicollinearity. However, it still performed strongly and produced a sparse, interpretable model, making it a useful complementary approach, even if not the final chosen model.
+Assumption Summary: LASSO does not perfectly satisfy linearity or
+balance assumptions, and its variable selection can be unstable under
+multicollinearity. However, it still performed strongly and produced a
+sparse, interpretable model, making it a useful complementary approach,
+even if not the final chosen model.
 
-After fitting the LASSO model on the training set and evaluating it on the test set, we obtained the following confusion matrix:
+After fitting the LASSO model on the training set and evaluating it on
+the test set, we obtained the following confusion matrix:
 
 ```{r, echo = FALSE}
 cm <- conf_mat_lasso$table
@@ -472,19 +639,30 @@ kable(cm, caption = "LASSO Confusion Matrix")
 
 From this, we computed the key performance metrics:
 
-- Accuracy = 0.8612 - The model correctly classified about 86% of the companies in the test set.
+-   Accuracy = 0.8612 - The model correctly classified about 86% of the
+    companies in the test set.
 
-- Sensitivity = 0.8500 - LASSO correctly identified about 85% of the actual bankrupt companies.
+-   Sensitivity = 0.8500 - LASSO correctly identified about 85% of the
+    actual bankrupt companies.
 
-- Specificity = 0.8616 - About 86% of the non-bankrupt companies were correctly classified.
+-   Specificity = 0.8616 - About 86% of the non-bankrupt companies were
+    correctly classified.
 
-- AUC = 0.9301 - This indicates excellent class separation, nearly as strong as Ridge, demonstrating that LASSO is also highly effective at distinguishing between bankrupt and non-bankrupt firms across all thresholds.
+-   AUC = 0.9301 - This indicates excellent class separation, nearly as
+    strong as Ridge, demonstrating that LASSO is also highly effective
+    at distinguishing between bankrupt and non-bankrupt firms across all
+    thresholds.
 
-Overall, LASSO performed very similarly to Ridge, with strong accuracy and discrimination ability. Its slightly lower sensitivity compared to Ridge suggests it identifies slightly fewer bankrupt firms, but its interpretability advantage (automatic variable selection) makes it especially useful for understanding which financial ratios matter most.
+Overall, LASSO performed very similarly to Ridge, with strong accuracy
+and discrimination ability. Its slightly lower sensitivity compared to
+Ridge suggests it identifies slightly fewer bankrupt firms, but its
+interpretability advantage (automatic variable selection) makes it
+especially useful for understanding which financial ratios matter most.
 
-<div style="text-align: center;">
+::: {style="text-align: center;"}
 #### Bagging
-</div>
+:::
+
 ```{r, include = FALSE}
 # Setup Bagging Data
 train_bag <- train
@@ -539,47 +717,69 @@ sensitivity_bag
 specificity_bag
 ```
 
-Bagging is an ensemble method that reduces variance by training many decision trees on bootstrapped samples of the data and averaging their predictions. Because individual trees are highly sensitive to noise and instability, bagging helps stabilise predictions, making it a strong candidate for noisy, high-dimensional, and imbalanced datasets like ours.
+Bagging is an ensemble method that reduces variance by training many
+decision trees on bootstrapped samples of the data and averaging their
+predictions. Because individual trees are highly sensitive to noise and
+instability, bagging helps stabilise predictions, making it a strong
+candidate for noisy, high-dimensional, and imbalanced datasets like
+ours.
 
-Definition and Formula: Bagging is an ensemble learning method that reduces variance by training multiple models on different bootstrap samples of the data and averaging their predictions:
+Definition and Formula: Bagging is an ensemble learning method that
+reduces variance by training multiple models on different bootstrap
+samples of the data and averaging their predictions:
 
-<div style="text-align: center;">
+::: {style="text-align: center;"}
 $\hat f_{bag}(x) = \frac{1}{B}\sum_{b=1}^B \hat f_b(x)$
-</div>
+:::
 
 Where:
 
-* B is the number of bootstrap samples
+-   B is the number of bootstrap samples
 
-* Each $\hat f_b(x)$ is the model trained on the b-th bootstrap sample
+-   Each $\hat f_b(x)$ is the model trained on the b-th bootstrap sample
 
-* The final prediction is the average of all models for regression or a majority vote for classification
+-   The final prediction is the average of all models for regression or
+    a majority vote for classification
 
-Assumptions: Bagging relies on far fewer assumptions than statistical models like logistic regression. Since it uses machine-learning decision trees trained on bootstrapped samples, it is flexible, nonparametric, and robust to complex nonlinear relationships.
+Assumptions: Bagging relies on far fewer assumptions than statistical
+models like logistic regression. Since it uses machine-learning decision
+trees trained on bootstrapped samples, it is flexible, nonparametric,
+and robust to complex nonlinear relationships.
 
-1. No linearity assumption: Decision trees do not require linear relationships between predictors and the outcome
+1.  No linearity assumption: Decision trees do not require linear
+    relationships between predictors and the outcome
 
-    a. Our check: Our exploratory plots showed nonlinear trends in several financial ratios, making Bagging appropriate
+    a.  Our check: Our exploratory plots showed nonlinear trends in
+        several financial ratios, making Bagging appropriate
 
-2. Handles multicollinearity: Tree-based models are not affected by strongly correlated predictors
+2.  Handles multicollinearity: Tree-based models are not affected by
+    strongly correlated predictors
 
-    a. Our check: Many ratios in our dataset were highly correlated, and Bagging naturally manages this without instability
+    a.  Our check: Many ratios in our dataset were highly correlated,
+        and Bagging naturally manages this without instability
 
-3. Handles outliers and skewed variables: Decision trees partition data based on thresholds, so extreme values do not distort the model
+3.  Handles outliers and skewed variables: Decision trees partition data
+    based on thresholds, so extreme values do not distort the model
 
-    a. Our check: Several financial ratios were heavily skewed; Bagging remains reliable under these conditions
+    a.  Our check: Several financial ratios were heavily skewed; Bagging
+        remains reliable under these conditions
 
-4. No distributional assumptions: Bagging does not assume normality or equal variances
+4.  No distributional assumptions: Bagging does not assume normality or
+    equal variances
 
-    a. Our check: These assumptions were violated in the data, but Bagging does not require them
+    a.  Our check: These assumptions were violated in the data, but
+        Bagging does not require them
 
-5. Requires reasonably independent observations: Observations should not be duplicated or repeated entities
+5.  Requires reasonably independent observations: Observations should
+    not be duplicated or repeated entities
 
-    a. Our check: Each fire is observed once, so this assumption is met
+    a.  Our check: Each fire is observed once, so this assumption is met
 
-Assumption Summary: Although Bagging does not directly correct the extreme class imbalance, we addressed this using balanced sampling
+Assumption Summary: Although Bagging does not directly correct the
+extreme class imbalance, we addressed this using balanced sampling
 
-When we evaluated the Bagging model on the test set, the confusion matrix was:
+When we evaluated the Bagging model on the test set, the confusion
+matrix was:
 
 ```{r, echo = FALSE}
 cm <- conf_mat_bag$table
@@ -590,19 +790,26 @@ kable(cm, caption = "Bagging Confusion Matrix")
 
 From this output, we obtained the following metrics:
 
-- Accuracy = 0.8876 - The model correctly classified about 89% of all companies in the test set.
+-   Accuracy = 0.8876 - The model correctly classified about 89% of all
+    companies in the test set.
 
-- Sensitivity = 0.7625 - Bagging identified roughly 76% of bankrupt companies, which is strong given the severe class imbalance.
+-   Sensitivity = 0.7625 - Bagging identified roughly 76% of bankrupt
+    companies, which is strong given the severe class imbalance.
 
-- Specificity = 0.8927 - Nearly 89% of non-bankrupt firms were correctly labelled.
+-   Specificity = 0.8927 - Nearly 89% of non-bankrupt firms were
+    correctly labelled.
 
-- AUC = 0.9281 - This high AUC indicates that Bagging separates bankrupt vs. non-bankrupt companies well across all probability thresholds.
+-   AUC = 0.9281 - This high AUC indicates that Bagging separates
+    bankrupt vs. non-bankrupt companies well across all probability
+    thresholds.
 
-Overall, Bagging performed very well, achieving a strong balance between sensitivity and specificity, making it one of our top-performing models.
+Overall, Bagging performed very well, achieving a strong balance between
+sensitivity and specificity, making it one of our top-performing models.
 
-<div style="text-align: center;">
+::: {style="text-align: center;"}
 #### Random Forest
-</div>
+:::
+
 ```{r, include = FALSE}
 # Setup Random Forest Data
 train_rf <- train
@@ -658,49 +865,76 @@ sensitivity_rf
 specificity_rf
 ```
 
-Random Forest builds on the idea of Bagging by adding an additional layer of randomness. Each tree in the ensemble is trained on a bootstrapped sample and only a random subset of predictors at each split. This helps decorrelate the trees, reduces overfitting, and often improves performance, especially in datasets with many correlated financial ratios, like ours.
+Random Forest builds on the idea of Bagging by adding an additional
+layer of randomness. Each tree in the ensemble is trained on a
+bootstrapped sample and only a random subset of predictors at each
+split. This helps decorrelate the trees, reduces overfitting, and often
+improves performance, especially in datasets with many correlated
+financial ratios, like ours.
 
-Definition and Formula: Random Forest is an ensemble learning method that builds multiple decision trees using both bootstrap samples of the data and random subsets of predictors at each split, reducing variance and limiting overfitting:
+Definition and Formula: Random Forest is an ensemble learning method
+that builds multiple decision trees using both bootstrap samples of the
+data and random subsets of predictors at each split, reducing variance
+and limiting overfitting:
 
-<div style="text-align: center;">
+::: {style="text-align: center;"}
 $\hat f_{RF}(x) = \frac{1}{B}\sum_{b=1}^B T_b(x)$
-</div>
+:::
 
 Where:
 
-* B is the number of trees
+-   B is the number of trees
 
-* $T_b(x)$ is the prediction from the b-th decision tree
+-   $T_b(x)$ is the prediction from the b-th decision tree
 
-* Each tree is trained on a bootstrap sample and, at each split, chooses from a random subset of predictors rather than all predictors
+-   Each tree is trained on a bootstrap sample and, at each split,
+    chooses from a random subset of predictors rather than all
+    predictors
 
-Assumptions: Random Forest is a nonparametric ensemble method with far fewer assumptions than linear models, making it well-suited for noisy, high-dimensional financial data.
+Assumptions: Random Forest is a nonparametric ensemble method with far
+fewer assumptions than linear models, making it well-suited for noisy,
+high-dimensional financial data.
 
-1. Independence of observations: Each row should represent an independent data point
+1.  Independence of observations: Each row should represent an
+    independent data point
 
-    a. Our Check: Each firm appears once in the dataset, so this assumption is satisfied
+    a.  Our Check: Each firm appears once in the dataset, so this
+        assumption is satisfied
 
-2. Sufficient variability and sample size: Random Forest requires enough data for bootstrapping to create diverse trees
+2.  Sufficient variability and sample size: Random Forest requires
+    enough data for bootstrapping to create diverse trees
 
-    a. Our Check: With thousands of firms and many predictors, the dataset provides ample variation
+    a.  Our Check: With thousands of firms and many predictors, the
+        dataset provides ample variation
 
-    b. Why Acceptable: The model produced stable out-of-bag error estimates, indicating enough data for reliable tree construction
+    b.  Why Acceptable: The model produced stable out-of-bag error
+        estimates, indicating enough data for reliable tree construction
 
-3. No assumptions of linearity or normality: Random Forest does not require linear relationships, normally distributed predictors, or homoscedasticity
+3.  No assumptions of linearity or normality: Random Forest does not
+    require linear relationships, normally distributed predictors, or
+    homoscedasticity
 
-    a. Our Check: Financial ratios showed strong nonlinear relationships and skewed distributions
+    a.  Our Check: Financial ratios showed strong nonlinear
+        relationships and skewed distributions
 
-    b. Why Acceptable: These patterns are expected in bankruptcy data, and Random Forest naturally captures nonlinear interactions
+    b.  Why Acceptable: These patterns are expected in bankruptcy data,
+        and Random Forest naturally captures nonlinear interactions
 
-4. Handles multicollinearity automatically: Tree-based models are not affected by correlated predictors
+4.  Handles multicollinearity automatically: Tree-based models are not
+    affected by correlated predictors
 
-    a. Our Check: Many features were heavily correlated
+    a.  Our Check: Many features were heavily correlated
 
-    b. Why Acceptable: Random feature selection prevents trees from repeatedly splitting on the same correlated variables, reducing overfitting
+    b.  Why Acceptable: Random feature selection prevents trees from
+        repeatedly splitting on the same correlated variables, reducing
+        overfitting
 
-Assumption Summary: Random Forest satisfies its core assumptions and is well-matched to this dataset's structure: nonlinear relationships, correlated financial ratios, and high dimensionality. 
+Assumption Summary: Random Forest satisfies its core assumptions and is
+well-matched to this dataset's structure: nonlinear relationships,
+correlated financial ratios, and high dimensionality.
 
-After training the Random Forest model on our dataset, the confusion matrix was:
+After training the Random Forest model on our dataset, the confusion
+matrix was:
 
 ```{r, echo = FALSE}
 cm <- conf_mat_rf$table
@@ -711,19 +945,30 @@ kable(cm, caption = "Random Forest Confusion Matrix")
 
 From this model output, we computed the following evaluation metrics:
 
-- Accuracy = 0.8895 - Random Forest correctly classified about 89% of firms in the test set, tying Bagging for the highest overall accuracy.
+-   Accuracy = 0.8895 - Random Forest correctly classified about 89% of
+    firms in the test set, tying Bagging for the highest overall
+    accuracy.
 
-- Sensitivity = 0.7625 - The model detected about 76% of actual bankrupt companies, performing slightly below Bagging in the recall of minority cases.
+-   Sensitivity = 0.7625 - The model detected about 76% of actual
+    bankrupt companies, performing slightly below Bagging in the recall
+    of minority cases.
 
-- Specificity = 0.8947 - Nearly 89% of non-bankrupt firms were correctly identified, the strongest specificity among all models.
+-   Specificity = 0.8947 - Nearly 89% of non-bankrupt firms were
+    correctly identified, the strongest specificity among all models.
 
-- AUC = 0.9305 - A high AUC score indicates strong ranking ability and good separation between bankrupt and non-bankrupt companies.
+-   AUC = 0.9305 - A high AUC score indicates strong ranking ability and
+    good separation between bankrupt and non-bankrupt companies.
 
-Overall, Random Forest performed extremely well, offering one of the best combinations of accuracy, specificity, and AUC among the models tested. It's a slight trade-off in sensitivity compared to Bagging, which is common, but it remained one of the strongest-performing classifiers on this dataset.
+Overall, Random Forest performed extremely well, offering one of the
+best combinations of accuracy, specificity, and AUC among the models
+tested. It's a slight trade-off in sensitivity compared to Bagging,
+which is common, but it remained one of the strongest-performing
+classifiers on this dataset.
 
-<div style="text-align: center;">
+::: {style="text-align: center;"}
 #### Model Comparison
-</div>
+:::
+
 ```{r, warning = FALSE, include = FALSE}
 evaluate_model <- function(probabilities, true_labels, threshold = 0.5) {
   
@@ -757,45 +1002,95 @@ comparison_table <- bind_rows(
 )
 ```
 
-After running all four models, we compared their performance using the key metrics discussed earlier:
+After running all four models, we compared their performance using the
+key metrics discussed earlier:
 
 ```{r, warning = FALSE, echo = FALSE}
 kable(comparison_table, digits = 4, caption = "Model Performance Comparison")
 ```
 
-Across the models, performance was similar, but each model showed strengths in different areas. Random Forest achieved the highest overall accuracy and specificity, indicating it excelled at correctly identifying non-bankrupt companies. Bagging performed similarly well in these categories, followed by LASSO and Ridge. Since Random Forest performed well on both accuracy and specificity, it also achieved one of the second-highest AUC values among the models.
+Across the models, performance was similar, but each model showed
+strengths in different areas. Random Forest achieved the highest overall
+accuracy and specificity, indicating it excelled at correctly
+identifying non-bankrupt companies. Bagging performed similarly well in
+these categories, followed by LASSO and Ridge. Since Random Forest
+performed well on both accuracy and specificity, it also achieved one of
+the second-highest AUC values among the models.
 
-However, when focusing on sensitivity (the model’s ability to correctly identify companies that actually went bankrupt), Ridge Regression performed the best. Ridge correctly flagged the largest proportion of bankrupt firms, making it the strongest model for detecting the rare but critical positive class. Ridge also achieved the highest overall AUC, indicating that it best separates bankrupt from non-bankrupt companies across all probability thresholds.
+However, when focusing on sensitivity (the model’s ability to correctly
+identify companies that actually went bankrupt), Ridge Regression
+performed the best. Ridge correctly flagged the largest proportion of
+bankrupt firms, making it the strongest model for detecting the rare but
+critical positive class. Ridge also achieved the highest overall AUC,
+indicating that it best separates bankrupt from non-bankrupt companies
+across all probability thresholds.
 
-While the four models are comparable overall, the choice depends on the relative cost of different errors. In a scenario where failing to identify a company at risk of bankruptcy is far more costly than predicting a false alarm, sensitivity becomes the most important metric. Because Ridge Regression not only maximizes sensitivity but also yields the highest AUC, it represents the most reliable and balanced model for our prediction task. In addition, the diagnostic plots, particularly the calibration curve and predicted probability distributions, show no major violations of Ridge Regression assumptions, further supporting its appropriateness for this dataset.
+While the four models are comparable overall, the choice depends on the
+relative cost of different errors. In a scenario where failing to
+identify a company at risk of bankruptcy is far more costly than
+predicting a false alarm, sensitivity becomes the most important metric.
+Because Ridge Regression not only maximizes sensitivity but also yields
+the highest AUC, it represents the most reliable and balanced model for
+our prediction task. In addition, the diagnostic plots, particularly the
+calibration curve and predicted probability distributions, show no major
+violations of Ridge Regression assumptions, further supporting its
+appropriateness for this dataset.
 
 Therefore, the final model selected was Ridge Regression.
 
-<div style="text-align: center;">
+::: {style="text-align: center;"}
 #### Challenges Faced
-</div>
+:::
 
-Throughout the modeling process, we encountered several challenges with the bankruptcy dataset's structure. The data was extremely imbalanced, with very few bankrupt firms, which made sensitivity a key concern and caused many baseline models to misclassify high-risk companies. In addition, the financial predictors exhibited strong multicollinearity and nonlinear relationships, violating the assumptions of traditional logistic models. Ridge Regression helped address these issues because its L2 penalty stabilizes coefficients in the presence of correlated variables, and its performance diagnostics suggested no major deviations from logistic model assumptions after regularization.
+Throughout the modeling process, we encountered several challenges with
+the bankruptcy dataset's structure. The data was extremely imbalanced,
+with very few bankrupt firms, which made sensitivity a key concern and
+caused many baseline models to misclassify high-risk companies. In
+addition, the financial predictors exhibited strong multicollinearity
+and nonlinear relationships, violating the assumptions of traditional
+logistic models. Ridge Regression helped address these issues because
+its L2 penalty stabilizes coefficients in the presence of correlated
+variables, and its performance diagnostics suggested no major deviations
+from logistic model assumptions after regularization.
 
-We also explored several alternative models, each of which revealed specific limitations under these conditions. KNN struggled heavily with the curse of dimensionality and the imbalance problem, leading to poor minority-class detection. PLS regression handled multicollinearity but could not capture important nonlinear relationships in the data. Classification trees were highly unstable and prone to overfitting, especially given the noise and imbalance in the predictors. By evaluating these challenges and applying class balancing, regularization, and diagnostic validation, we determined that Ridge Regression offered the most reliable combination of accuracy, interpretability, and robustness. Ultimately, this made it the strongest model for predicting bankruptcy risk in this dataset.
+We also explored several alternative models, each of which revealed
+specific limitations under these conditions. KNN struggled heavily with
+the curse of dimensionality and the imbalance problem, leading to poor
+minority-class detection. PLS regression handled multicollinearity but
+could not capture important nonlinear relationships in the data.
+Classification trees were highly unstable and prone to overfitting,
+especially given the noise and imbalance in the predictors. By
+evaluating these challenges and applying class balancing,
+regularization, and diagnostic validation, we determined that Ridge
+Regression offered the most reliable combination of accuracy,
+interpretability, and robustness. Ultimately, this made it the strongest
+model for predicting bankruptcy risk in this dataset.
 
-<div style="text-align: center;">
+::: {style="text-align: center;"}
 ### Model Validation
-</div>
+:::
 
-To confirm our decision of the Ridge Regression model, we decided to explore the details of the model to truly understand how it works.
+To confirm our decision of the Ridge Regression model, we decided to
+explore the details of the model to truly understand how it works.
 
-<div style="text-align: center;">
+::: {style="text-align: center;"}
 ```{r, message = FALSE, warning = FALSE, echo = FALSE}
 ridge_roc <- roc(y_test_ridge, as.numeric(ridge_prob))
 #auc(ridge_roc)
 plot(ridge_roc, main = "Ridge Regression ROC Curve")
 ```
-</div>
+:::
 
-The Ridge Regression model achieved an AUC of .9318, indicating excellent ability to distinguish between bankrupt and non-bankrupt firms. An AUC this high means the model correctly ranks risky companies above healthy ones the vast majority of the time, even across different probability thresholds. This strong discriminative performance is especially noteworthy given the dataset's extreme class imbalance, demonstrating that Ridge Regression is highly effective at identifying high-risk firms despite the data's challenging structure.
+The Ridge Regression model achieved an AUC of .9318, indicating
+excellent ability to distinguish between bankrupt and non-bankrupt
+firms. An AUC this high means the model correctly ranks risky companies
+above healthy ones the vast majority of the time, even across different
+probability thresholds. This strong discriminative performance is
+especially noteworthy given the dataset's extreme class imbalance,
+demonstrating that Ridge Regression is highly effective at identifying
+high-risk firms despite the data's challenging structure.
 
-<div style="text-align: center;">
+::: {style="text-align: center;"}
 ```{r, warning = FALSE, echo = FALSE}
 ridge_coefs <- coef(ridge_fit)
 
@@ -819,11 +1114,21 @@ ggplot(coef_df_top, aes(x = reorder(Variable, Coefficient), y = Coefficient)) +
   ) +
   theme_minimal()
 ```
-</div>
+:::
 
-The top 20 Ridge Regression coefficients highlight which financial ratios have the strongest influence on bankruptcy after shrinkage is applied. Variables with large positive coefficients, such as Debt Ratio and Current Liability to Assets, increase the predicted probability of bankruptcy, indicating they are strong risk indicators. In contrast, variables with large negative coefficients, such as Persistent EPS in the Last Four Seasons and Contingent Liabilities to Net Worth, reduce predicted bankruptcy risk. Since Ridge shrinks correlated predictors together rather than eliminating them, this ranking reflects the overall combined importance of financial ratios rather than selecting just a few individual features.
+The top 20 Ridge Regression coefficients highlight which financial
+ratios have the strongest influence on bankruptcy after shrinkage is
+applied. Variables with large positive coefficients, such as Debt Ratio
+and Current Liability to Assets, increase the predicted probability of
+bankruptcy, indicating they are strong risk indicators. In contrast,
+variables with large negative coefficients, such as Persistent EPS in
+the Last Four Seasons and Contingent Liabilities to Net Worth, reduce
+predicted bankruptcy risk. Since Ridge shrinks correlated predictors
+together rather than eliminating them, this ranking reflects the overall
+combined importance of financial ratios rather than selecting just a few
+individual features.
 
-<div style="text-align: center;">
+::: {style="text-align: center;"}
 ```{r, warning = FALSE, echo = FALSE}
 ridge_prob_df <- data.frame(
   Predicted_Prob = as.numeric(ridge_prob),
@@ -839,11 +1144,19 @@ ggplot(ridge_prob_df, aes(x = Predicted_Prob, fill = Actual)) +
   ) +
   theme_minimal()
 ```
-</div>
+:::
 
-This probability distribution plot shows how well the Ridge Regression model separates bankrupt and non-bankrupt companies based on predicted risk scores. Non-bankrupt firms (Actual Class 0) are mostly concentrated near very low predicted probabilities, while bankrupt firms (Actual Class 1) cluster toward the higher end of the probability scale. Although there is some overlap in the middle range, as expected given the noisy, imbalanced data, the two distributions remain well-separated. This indicates that the model assigns meaningfully different risk levels to the two groups and effectively ranks firms by bankruptcy likelihood.
+This probability distribution plot shows how well the Ridge Regression
+model separates bankrupt and non-bankrupt companies based on predicted
+risk scores. Non-bankrupt firms (Actual Class 0) are mostly concentrated
+near very low predicted probabilities, while bankrupt firms (Actual
+Class 1) cluster toward the higher end of the probability scale.
+Although there is some overlap in the middle range, as expected given
+the noisy, imbalanced data, the two distributions remain well-separated.
+This indicates that the model assigns meaningfully different risk levels
+to the two groups and effectively ranks firms by bankruptcy likelihood.
 
-<div style="text-align: center;">
+::: {style="text-align: center;"}
 ```{r, warning = FALSE, echo = FALSE}
 cal_data <- data.frame(
   prob = as.numeric(ridge_prob),
@@ -871,11 +1184,20 @@ ggplot(cal_summary, aes(x = mean_pred, y = actual_rate)) +
   theme_minimal()
 
 ```
-</div>
+:::
 
-The calibration curve evaluates how well Ridge Regression's predicted probabilities match actual bankruptcy rates. Ideally, points would lie on the diagonal dashed line, meaning predicted risks equal observed outcomes. In our plot, the model is slightly underconfident at lower probabilities (predicting small but nonzero risk even when almost no firms go bankrupt) and becomes more accurate as predicted probabilities increase, with strong alignment in the highest-risk bins. This pattern indicates that while Ridge tends to "play it safe" at the low end, it reliably indicates genuinely high-risk firms, making its probability estimates useful for ranking and decision-making.
+The calibration curve evaluates how well Ridge Regression's predicted
+probabilities match actual bankruptcy rates. Ideally, points would lie
+on the diagonal dashed line, meaning predicted risks equal observed
+outcomes. In our plot, the model is slightly underconfident at lower
+probabilities (predicting small but nonzero risk even when almost no
+firms go bankrupt) and becomes more accurate as predicted probabilities
+increase, with strong alignment in the highest-risk bins. This pattern
+indicates that while Ridge tends to "play it safe" at the low end, it
+reliably indicates genuinely high-risk firms, making its probability
+estimates useful for ranking and decision-making.
 
-<div style="text-align: center;">
+::: {style="text-align: center;"}
 ```{r, warning = FALSE, echo = FALSE}
 lift_data <- gains(
   actual = as.numeric(as.character(y_test_ridge)),
@@ -898,9 +1220,16 @@ ggplot(lift_df, aes(x = depth, y = lift)) +
   ) +
   theme_minimal()
 ```
-</div>
+:::
 
-The lift chart shows how effectively Ridge Regression identifies the highest-risk companies. The very first segment of the ranked predictions achieves extremely high lift, meaning the model concentrates a disproportionately large share of actual bankruptcies among the firms it ranks as most likely to fail. Lift drops sharply after this top group, and later segments approach the performance of random selection. This pattern indicates that Ridge is highly effective at prioritizing the riskiest companies, even if its probability calibration is not perfect.
+The lift chart shows how effectively Ridge Regression identifies the
+highest-risk companies. The very first segment of the ranked predictions
+achieves extremely high lift, meaning the model concentrates a
+disproportionately large share of actual bankruptcies among the firms it
+ranks as most likely to fail. Lift drops sharply after this top group,
+and later segments approach the performance of random selection. This
+pattern indicates that Ridge is highly effective at prioritizing the
+riskiest companies, even if its probability calibration is not perfect.
 
 ```{r, warning = FALSE, echo = FALSE}
 top_risk <- data.frame(
@@ -914,36 +1243,85 @@ head(10)
 kable(top_risk, digits = 4, caption = "Top 10 Highest-Risk Companies")
 ```
 
-The table lists the 10 companies with the highest predicted probability of bankruptcy according to Ridge Regression. All ten firms have extremely high predicted probabilities, and most importantly, every company in this group is actually labeled bankrupt in the test set. This demonstrates that the model is highly effective at identifying the most at-risk firms. When Ridge assigns a near-certain probability of bankruptcy, it is consistently correct. This strong alignment between predicted risk and true outcomes reinforces the model's value for early-warning screening and prioritizing firms that require immediate attention.
+The table lists the 10 companies with the highest predicted probability
+of bankruptcy according to Ridge Regression. All ten firms have
+extremely high predicted probabilities, and most importantly, every
+company in this group is actually labeled bankrupt in the test set. This
+demonstrates that the model is highly effective at identifying the most
+at-risk firms. When Ridge assigns a near-certain probability of
+bankruptcy, it is consistently correct. This strong alignment between
+predicted risk and true outcomes reinforces the model's value for
+early-warning screening and prioritizing firms that require immediate
+attention.
 
-<div style="text-align: center;">
+::: {style="text-align: center;"}
 ## Results
-</div>
+:::
 
-To evaluate the final model performance, we tested the Ridge Regression model on our test dataset. Ridge was selected because it demonstrated strong discriminative performance, stability under multicollinearity, and effective handling of the highly imbalanced class structure.
+To evaluate the final model performance, we tested the Ridge Regression
+model on our test dataset. Ridge was selected because it demonstrated
+strong discriminative performance, stability under multicollinearity,
+and effective handling of the highly imbalanced class structure.
 
-Across the test set, Ridge achieved an accuracy of 0.8583, a sensitivity of 0.8625, and a specificity of 0.8581. Below are interpretations of these values in the context of the problem:
+Across the test set, Ridge achieved an accuracy of 0.8583, a sensitivity
+of 0.8625, and a specificity of 0.8581. Below are interpretations of
+these values in the context of the problem:
 
-- 85.83% of the time, the Ridge Regression model will correctly identify if a company will go bankrupt or not
+-   85.83% of the time, the Ridge Regression model will correctly
+    identify if a company will go bankrupt or not
 
-- 86.25% of the time, the Ridge Regression model will correctly identify a company that will go bankrupt
+-   86.25% of the time, the Ridge Regression model will correctly
+    identify a company that will go bankrupt
 
-- 85.81% of the time, the Ridge Regression model will correctly identify a company that will not go bankrupt
+-   85.81% of the time, the Ridge Regression model will correctly
+    identify a company that will not go bankrupt
 
-Importantly, Ridge produced an AUC of .9318, indicating excellent ability to rank companies by bankruptcy risk. Below is the interpretation of this value in the context of the problem:
+Importantly, Ridge produced an AUC of .9318, indicating excellent
+ability to rank companies by bankruptcy risk. Below is the
+interpretation of this value in the context of the problem:
 
-- The Ridge Regression model has a 93.18% chance of correctly ranking a randomly chosen bankrupt firm above a randomly chosen non-bankrupt firm
+-   The Ridge Regression model has a 93.18% chance of correctly ranking
+    a randomly chosen bankrupt firm above a randomly chosen non-bankrupt
+    firm
 
-The model consistently assigns very low probabilities to healthy firms and high probabilities to bankrupt firms, as shown in the validation probability distribution plot.
+The model consistently assigns very low probabilities to healthy firms
+and high probabilities to bankrupt firms, as shown in the validation
+probability distribution plot.
 
-Interpreting the final fitted model, the largest coefficient magnitudes indicate which financial ratios contribute most strongly to bankruptcy risk. Variables such as Debt Ratio, Current Liability to Assets, and No Credit Interval increase the predicted bankruptcy probability, while metrics such as Persistent EPS over the Last Four Seasons and Contingent Liabilities to Net Worth reduce risk. Since Ridge shrinks correlated predictors together, their rankings reflect overall risk signals rather than reliance on a single feature.
+Interpreting the final fitted model, the largest coefficient magnitudes
+indicate which financial ratios contribute most strongly to bankruptcy
+risk. Variables such as Debt Ratio, Current Liability to Assets, and No
+Credit Interval increase the predicted bankruptcy probability, while
+metrics such as Persistent EPS over the Last Four Seasons and Contingent
+Liabilities to Net Worth reduce risk. Since Ridge shrinks correlated
+predictors together, their rankings reflect overall risk signals rather
+than reliance on a single feature.
 
-Finally, we examined the model's highest-risk predictions. The top 10 firms with the highest predicted risk in the test set were all labeled as bankrupt, demonstrating that Ridge is highly effective at identifying the most vulnerable companies. This makes the model particularly useful for early warning systems and for prioritizing firms for further financial assessment.
+Finally, we examined the model's highest-risk predictions. The top 10
+firms with the highest predicted risk in the test set were all labeled
+as bankrupt, demonstrating that Ridge is highly effective at identifying
+the most vulnerable companies. This makes the model particularly useful
+for early warning systems and for prioritizing firms for further
+financial assessment.
 
-Overall, Ridge Regression provides strong predictive accuracy, excellent ranking performance, and interpretable financial drivers of bankruptcy, making it a reliable model for this application.
+Overall, Ridge Regression provides strong predictive accuracy, excellent
+ranking performance, and interpretable financial drivers of bankruptcy,
+making it a reliable model for this application.
 
-<div style="text-align: center;">
+::: {style="text-align: center;"}
 ## Conclusion
-</div>
+:::
 
-In this analysis, we developed and evaluated several predictive models for bankruptcy classification and ultimately selected Ridge Regression as the final model due to its strong performance, stability under multicollinearity, and reliable handling of highly imbalanced financial data. Ridge achieved high accuracy and an AUC above .93, demonstrating excellent ability to distinguish between bankrupt and non-bankrupt firms, while its coefficient structure provided meaningful insight into the financial ratios most associated with bankruptcy risk. Model validation further showed that Ridge effectively ranks firms by risk and reliably identifies the highest-risk companies. Overall, the Ridge Regression model offers a strong balance of predictive accuracy, interpretability, and robustness, making it well-suited for risk assessment applications.
+In this analysis, we developed and evaluated several predictive models
+for bankruptcy classification and ultimately selected Ridge Regression
+as the final model due to its strong performance, stability under
+multicollinearity, and reliable handling of highly imbalanced financial
+data. Ridge achieved high accuracy and an AUC above .93, demonstrating
+excellent ability to distinguish between bankrupt and non-bankrupt
+firms, while its coefficient structure provided meaningful insight into
+the financial ratios most associated with bankruptcy risk. Model
+validation further showed that Ridge effectively ranks firms by risk and
+reliably identifies the highest-risk companies. Overall, the Ridge
+Regression model offers a strong balance of predictive accuracy,
+interpretability, and robustness, making it well-suited for risk
+assessment applications.
