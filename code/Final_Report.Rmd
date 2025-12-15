@@ -1,6 +1,5 @@
 ---
 output:
-  pdf_document: default
   html_document: default
 ---
 <div style="text-align: center;">
@@ -47,72 +46,121 @@ test <- read.csv("../data/test.csv")
 ## Introduction
 </div>
 
-This project analyzes a company bankruptcy dataset. The given information includes financial statements and other financial metrics, with the goal of understanding how financial factors play a role in predicting bankruptcy. The training dataset includes 4,773 observations and 97 variables. 96 are financial predictors that are numeric. The response variable, Bankruptcy, is a binary variable. It indicates whether a firm declared bankruptcy (1), or not (0). 
+This project analyzes a company bankruptcy dataset consisting of financial statement information and other firm-level financial metrics, with the goal of understanding how measurable financial factors contribute to predicting bankruptcy. The training dataset contains 4,773 observations and 97 variables, of which 96 are numeric financial predictors. The response variable, Bankrupt, is binary, indicating whether a firm declared bankruptcy (1) or not (0).
 
-Due to all predictors being numeric, and representing standardized or normalized financial ratios capturing firm performance, a careful exploratory analysis is needed to identify data quality issues, redundancy, and structural challenges that affect modeling.
+Because the predictors are entirely numeric and represent standardized or normalized financial ratios, careful exploratory analysis is required to assess data quality, detect extreme or implausible values, and understand the structural relationships among variables. In addition, financial ratios tend to be highly correlated, and the response exhibits severe class imbalance, with bankruptcy cases representing only a small portion of the dataset. These characteristics introduce modeling challenges, including multicollinearity, noisy predictors, and uneven class representation.
+
+Given these complexities, our analysis begins by exploring the distribution of predictors, identifying anomalous values, examining relationships between variables and the response, and grouping financial ratios into meaningful categories. This foundation informs the selection, tuning, and evaluation of predictive models for effectively and interpretably classifying bankruptcy risk.
 
 <div style="text-align: center;">
 ## Exploratory Data Analysis
 </div>
 
-First we performed exploratory data analysis on our dataset to help understand the the structure, quality, and key characteristics of the data. We examine variable types, potential data quality issues such as extreme values or missing data, relationships between predictors and the response, and early indications of which variables may be important for predicting bankruptcy.
+We began with an exploratory data analysis to understand the dataset's structure, quality, and key characteristics. This included examining variable types, identifying potential data quality issues such as extreme or missing values, assessing relationships between predictors and the response, and identifying early signals of which financial variables may be associated with bankruptcy. These steps provide the necessary context for model selection and help ensure that downstream modeling decisions are grounded in the underlying data patterns.
 
 <div style="text-align: center;">
 ### Data Problems
-
-A review of summary statistics reveal significant data quality issues. First, there are many extreme and implausible values. Many predictors that represent ratios or rates contain extreme values from 10 to 10^10, which are not realistic for normalized financial measures. A list is provided below. 
-
 </div>
+
+A review of summary statistics revealed significant data quality issues within the dataset. Many predictors contained extreme and implausible values, especially variables representing financial ratios that should normally fall within a constrained economic range. Several predictors included values ranging from 10 to $10^10$, which are not realistic for standardized financial metrics and are likely due to data entry errors, scaling inconsistencies, or firms with extremely unusual financial structures.
+
+These extreme values raise concerns because:
+
+- They can distort model coefficients, especially in linear or distance-based models such as logistic regression or KNN.
+
+- They may inflate variances, reducing model stability.
+
+- They can affect correlation estimates, misleading variable selection and interpretation.
+
+A list of predictors with the most extreme values is shown below.
+
+##### Variables With Extreme Values
+
 ```{r}
 num_train <- train[, sapply(train, is.numeric)]
 
 max_vals <- apply(num_train, 2, max, na.rm = TRUE)
 
 bad_vars <- sort(max_vals[max_vals > 1e4], decreasing = TRUE)
-bad_vars
+
+kable(bad_vars)
 ```
 
 
 <div style="text-align: center;">
 ### Variable Types 
 </div>
+
+The dataset contains 96 numeric predictors, each representing a different financial ratio or performance indicator used to explain the binary response variable, Bankruptcy. Although the predictors span many specific accounting measures, they can be broadly organized into five major financial categories, each capturing a different dimension of a firm’s financial health. Grouping variables this way helps clarify how different types of financial risk relate to bankruptcy likelihood.
+
+##### Profitability Predictors
+
 ```{r}
-names(train)
+selected_vars <- c("ROA.A..before.interest.and…after.tax", "ROA.B..before.interest.and.depreciation.after.tax", "ROA.C..before.interest.and.depreciation.before.interest", "Net.Income.to.Total.Assets")
+
+kable(data.frame(Predictor = selected_vars))
 ```
 
-Again the dataset contains 96 numeric predictors to describe the response variable. These predictors represent a wide range of financial measures but can broadly be grouped into 5 categories:  
+Profitability ratios measure how effectively a company generates income relative to its assets or equity. These variables capture operational efficiency, return on investments, and overall financial performance.
 
-Profitability
+##### Liquidity Predictors
 
-- Profitability measures describe a company's earnings relative to assets or equity and are variables like ROA A/B/C or Net Income to Total Assets.
+```{r}
+selected_vars <- c("Current.Ratio", "Working.Capital.to.Total.Assets")
 
-Liquidity
+kable(data.frame(Predictor = selected_vars))
+```
 
-- Liquidity measures the company's ability to turn assets into cash to meet short term financial obligations and are variables like Current Ratio or Workign Capital to Total Assets. 
+Liquidity measures a company’s ability to convert assets into cash quickly to meet short-term financial obligations. Low liquidity often signals a higher risk of financial distress or default.
 
-Leverage
+##### Leverage Predictors
 
-- Leverage measures descibe the company's debt and captial structure and are variables like Debt Ratio and Total Debt Total Net Worth
+```{r}
+selected_vars <- c("Debt.ratio..", "Total.debt.Total.net.worth")
 
-Turnover 
+kable(data.frame(Predictor = selected_vars))
+```
 
-- Turnover measures describe a company's efficiency of asset use and include variables like Cash Turnover Rate and Inventory Turnover Rate times. 
+Leverage ratios describe a firm’s capital structure—specifically, how much of its financing comes from debt rather than equity. Highly leveraged firms may face increased bankruptcy risk due to heavier repayment burdens.
 
-Cash Flow 
+##### Turnover Predictors
 
-- Cash flow measures reflect the generation and allocatiion of cach within a company and include variables liek operting Cac Flow to Total Assets and Cash Current Liability. 
+```{r}
+selected_vars <- c("Cash.Turnover.Rate", "Inventory.Turnover.Rate..times.")
+
+kable(data.frame(Predictor = selected_vars))
+```
+
+Turnover ratios capture how efficiently a company uses its assets to generate sales or revenue. Higher turnover generally reflects effective asset utilization, while low turnover may indicate inefficiency or operational challenges.
+
+##### Cash Flow Predictors
+
+```{r}
+selected_vars <- c("Cash.Flow.to.Total.Assets", "Cash.Current.Liability")
+
+kable(data.frame(Predictor = selected_vars))
+```
+
+Cash flow measures reflect the generation and movement of cash within a company. Since insolvency ultimately occurs when firms cannot meet cash obligations, these variables often play an important role in bankruptcy prediction.
 
 <div style="text-align: center;">
 ### Missing Data
 </div>
+
+##### Missing Data?
+
 ```{r}
-colSums(is.na(train))
+kable(anyNA(train))
 ```
-One positive about the dataset is that there are no missing values. A formal check showed that no missing values are present across any predictors or the response variable. Therefore, no deletion or augmentation of the data is needed. 
+
+A formal check of the dataset confirms that no missing values are present in any of the 96 predictors or in the response variable. This is a notable advantage, as it means no imputation, deletion, or data augmentation procedures are required. With complete data across all variables, we can proceed directly to modeling without concerns about bias or information loss from missing values.
 
 <div style="text-align: center;">
 ### Collinearity Issues
 </div>
+
+##### Number of Correlated Pairs > 0.8
+
 ```{r}
 library(caret)
 library(dplyr)
@@ -128,81 +176,113 @@ high_corr_pairs <- sum(
   na.rm = TRUE
 )
 
-high_corr_pairs
+kable(high_corr_pairs)
+```
 
+##### Top 10 Highest Correlated Predictors
+
+```{r}
 top10_high_corr <- as.data.frame(as.table(cor_mat)) %>%
   filter(Var1 != Var2, abs(Freq) > 0.8) %>%
   mutate(abs_corr = abs(Freq)) %>%
   arrange(desc(abs_corr)) %>%
   slice(1:10)
 
-top10_high_corr
+kable(top10_high_corr)
 ```
-There is significant collinearity among the predictors. Given the financial nature of the dataset, this is expected. Many financial figures and calculated metrics rely on core figures across the three financial statements. The expectation is confirmed through correlation analysis. 
 
-After accounting for undefined correlation caused by zero-variance predictors, a pairwise correlation analysis shows that 43 distinct pairs of predictors exhibit absolute correlation values greater than 0.8. Some examples include Net Worth to Assets vs. Debt Ratio, and Operating Gross Margin vs. Gross profit to Sales.
+There is significant collinearity among the predictors, which is expected given the financial nature of the dataset. Many financial ratios are built from the same underlying accounting quantities, so strong relationships between predictors are unavoidable. After removing variables with zero variance, a pairwise correlation analysis revealed that 43 predictor pairs exhibited absolute correlations exceeding 0.8, confirming substantial redundancy in the feature set.
 
+Several examples illustrate why these correlations occur. Measures such as Net Worth to Assets and Debt Ratio are inversely related by definition, and Gross Profit to Sales versus Operating Gross Margin capture nearly identical aspects of profitability. Similar patterns appear across liquidity, leverage, turnover, and cash-flow metrics, where different ratios reflect the same underlying financial behaviors. This overlap helps explain why so many predictors move together.
+
+Such high collinearity presents challenges for traditional modeling, especially linear and logistic regression, where correlated predictors can lead to unstable or inflated coefficient estimates. Because of this, our analysis relied on regularized methods, most notably Ridge Regression, which shrinks correlated predictors together and reduces their variance without removing them. This allowed the final model to remain stable, interpretable, and robust despite the dataset's high redundancy.
 
 <div style="text-align: center;">
 ### Potential Important Predictors 
 </div>
-```{r}
-cor_matrix <- cor(train, use = "complete.obs")
-cor_response <- cor_matrix["Bankrupt.",]  # named vector
 
-# Table of top correlated vars to response
-data_frame(
+##### Variables With |Correlation| > 0.20 With Bankruptcy
+
+```{r, warning = FALSE}
+cor_matrix <- cor(train, use = "complete.obs")
+cor_response <- cor_matrix["Bankrupt.",]
+
+cor_table <- data.frame(
   Variable = names(cor_response),
   Correlation = cor_response
 ) %>%
   filter(abs(Correlation) > 0.2) %>%
   arrange(desc(abs(Correlation)))
 
-# Two sample T test
-pvals <- sapply(train[ , -which(names(train) %in% c("X","Bankrupt."))], 
-                function(x) {
-                  tryCatch(t.test(x ~ train$Bankrupt.)$p.value, 
-                           error = function(e) NA)
-                })
-
-sort(pvals)[1:15]
+kable(cor_table)
 ```
 
-To identify some early signs of variables important in predicting bankruptcy, we did both correlation analysis with the response variable and two sample t-tests. Some notable variables narrowed down from both results are as such: 
+##### Top 15 Variables With the Lowest t-Test p-Values
 
-Profitability measurement:
+```{r}
+pvals <- sapply(
+  train[ , -which(names(train) %in% c("X","Bankrupt."))], 
+  function(x) {
+    tryCatch(t.test(x ~ train$Bankrupt.)$p.value, 
+             error = function(e) NA)
+  }
+)
 
-- Net Income to Total Assets
+pval_table <- data.frame(
+  Variable = names(pvals),
+  P_Value = pvals
+) %>%
+  arrange(P_Value) %>%
+  slice(1:15)
 
-- ROA A/B/C before interest and after tax (these variables have high, near 1.0 correlation so either one of these variables could be selected)  
+kable(pval_table)
+```
 
-Financial Leverage measurement:  
+To identify early signs of which variables may be useful for predicting bankruptcy, we examined both pairwise correlations with the response and results from two-sample t-tests comparing firms that did and did not declare bankruptcy. Several predictors consistently appeared in both analyses, indicating stronger relationships with bankruptcy outcomes.
 
-- Debt ratio  
+From a profitability perspective, variables such as Net Income to Total Assets and the various ROA measures (A/B/C) showed a strong association with bankruptcy. These ratios capture whether firms are generating sufficient earnings relative to their assets—something that typically deteriorates well before bankruptcy. Since the ROA variants are nearly perfectly correlated with each other, they represent the same underlying signal, and only one would need to be included in downstream models.
 
-Liquidity measurement:
+Among financial leverage measures, the Debt Ratio emerged as one of the most important predictors. This aligns with economic intuition: firms with higher leverage face greater financial strain and are more vulnerable during downturns or periods of poor cash flow.
 
-- Working Capital to Total Assets
+Finally, liquidity indicators such as Working Capital to Total Assets and Cash Total Assets also appeared significant. Both metrics reflect a firm’s ability to cover short-term obligations. Lower liquidity is often an early warning sign of distress and can precede bankruptcy filings.
 
-- Cash Total Assets  
-
-These early important variables include measures of profitability, leverage, and liquidity that are early signals of bankruptcy risk and may be important predictors later on. 
+Together, these variables—spanning profitability, leverage, and liquidity- represent intuitive and meaningful financial dimensions that may serve as strong predictors of bankruptcy risk. They provide useful guidance for model building and highlight which financial signals deteriorate earliest in failing firms.
 
 <div style="text-align: center;">
 ### Key Figures and Numerical Summaries 
 </div>
+
+##### Summary of Bankruptcy Response
+
 ```{r}
-summary(train$Bankrupt.)
-prop.table(table(train$Bankrupt.))
+bankrupt_summary <- data.frame(
+  Category = names(summary(train$Bankrupt.)),
+  Proportion = as.numeric(summary(train$Bankrupt.))
+)
+kable(bankrupt_summary)
 ```
-The response variable Bankruptcy is a binary variable that takes values of 0 or 1 to indicate if a company is or is not bankrupt. The numerical summary of the response variable in the training dataset shows that 97.07% of the dataset is 0s while only 2.93% of the dataset is 1s. This indicates that the dataset is very sparse and impalanced. This piece of information is important to note when thinking about potential modeling methods. 
+
+##### Bankruptcy Response Classification Split
+
+```{r}
+bankrupt_prop <- data.frame(
+  Category = names(prop.table(table(train$Bankrupt.))),
+  Proportion = as.numeric(prop.table(table(train$Bankrupt.)))
+)
+kable(bankrupt_prop)
+```
+
+The response variable Bankruptcy is a binary indicator: 1 indicates a bankrupt firm and 0 indicates a non-bankrupt firm. The summary statistics show that bankruptcy cases make up only 2.93% of the training dataset, while 97.07% of firms are healthy. The mean response (0.0293) reflects the extremely low event rate, confirming that bankruptcy is a rare outcome.
+
+This severe class imbalance has important implications for modeling. Standard classifiers may default to predicting the majority class, so careful consideration of evaluation metrics—such as sensitivity, specificity, and AUC- is necessary to ensure meaningful performance. The imbalance also highlights the need for models that can effectively detect minority-class events, since identifying bankrupt firms is ultimately the key objective of this prediction task.
 
 <div style="text-align: center;">
 ### Potential Models
 </div>
-Overall, several numerical summaries capture the most important aspects of the data. Severe class imbalance resulted in only 3% of the firms in the training set being bankrupt, making it a rare event. There is separation in financial performance, and profitability, leverage, and earnings-related measures show strong differences between classes. Extreme outliers contain implausible values and magnitudes larger than expected. High redundancy exists, with predictors being nearly identical or strongly correlated. 
 
-To overcome these issues based on the EDA, there should be dimensionality reduction to address redundancy and the large number of predictors. Examination of regularization or tree-based methods should be prioritized over unregularized linear models. Finally, class imbalance must be explicitly handled, and the selection of the best model should emphasize sensitivity and recall rather than accuracy alone. 
+The exploratory analysis highlighted several key characteristics of the dataset that directly inform model choice. The most critical issue is the severe class imbalance, with only about 3% of firms classified as bankrupt. Additionally, the predictors show meaningful separation across financial performance categories—profitability, leverage, liquidity, and earnings stability all differ notably between bankrupt and non-bankrupt firms. However, the dataset also contains extreme outliers with implausibly large magnitudes and high redundancy, as many predictors are nearly identical or highly correlated.
+
+Given these challenges, models that reduce dimensionality and handle multicollinearity, such as regularized logistic regression (Ridge or Lasso) or tree-based methods, are more appropriate than unregularized linear models. Class imbalance must be explicitly addressed, and evaluation metrics should emphasize sensitivity and recall rather than accuracy alone, since failing to detect a bankrupt firm is far more costly than a false positive. These considerations strongly motivated the exploration of regularized models and ultimately informed the selection of our final predictive model.
 
 
 <div style="text-align: center;">
