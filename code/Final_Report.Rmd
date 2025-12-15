@@ -62,7 +62,7 @@ We began with an exploratory data analysis to understand the dataset's structure
 ### Data Problems
 </div>
 
-A review of summary statistics revealed significant data quality issues within the dataset. Many predictors contained extreme and implausible values, especially variables representing financial ratios that should normally fall within a constrained economic range. Several predictors included values ranging from 10 to $10^10$, which are not realistic for standardized financial metrics and are likely due to data entry errors, scaling inconsistencies, or firms with extremely unusual financial structures.
+A review of summary statistics revealed significant data quality issues within the dataset. Many predictors contained extreme and implausible values, especially variables representing financial ratios that should normally fall within a constrained economic range. Several predictors included values ranging from 10 to $10^{10}$, which are not realistic for standardized financial metrics and are likely due to data entry errors, scaling inconsistencies, or firms with extremely unusual financial structures.
 
 These extreme values raise concerns because:
 
