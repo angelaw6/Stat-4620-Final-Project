@@ -1,5 +1,6 @@
 ---
 output:
+  pdf_document: default
   html_document: default
 ---
 <div style="text-align: center;">
@@ -11,7 +12,7 @@ output:
 <br>
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
 ```
 
 ```{r, include = FALSE}
@@ -76,22 +77,29 @@ bad_vars
 ### Variable Types 
 </div>
 ```{r}
-ratio_vars <- sapply(train, function(x) all(x >= 0 & x <= 1, na.rm = TRUE))
-names(ratio_vars[ratio_vars == TRUE])
-names(ratio_vars[ratio_vars == FALSE])
-
+names(train)
 ```
 
 Again the dataset contains 96 numeric predictors to describe the response variable. These predictors represent a wide range of financial measures but can broadly be grouped into 5 categories:  
 
 Profitability
-  - Profitability measures describe a company's earnings relative to assets or equity and are variables like ROA A/B/C or Net Income to Total Assets.
+
+- Profitability measures describe a company's earnings relative to assets or equity and are variables like ROA A/B/C or Net Income to Total Assets.
+
 Liquidity
-  - Liquidity measures the company's ability to turn assets into cash to meet short term financial obligations and are variables like Current Ratio or Workign Capital to Total Assets. 
+
+- Liquidity measures the company's ability to turn assets into cash to meet short term financial obligations and are variables like Current Ratio or Workign Capital to Total Assets. 
+
 Leverage
-  - Leverage measures descibe the company's debt and captial structure and are variables like Debt Ratio and Total Debt Total Net Worth
+
+- Leverage measures descibe the company's debt and captial structure and are variables like Debt Ratio and Total Debt Total Net Worth
+
 Turnover 
-  - Turnover measures describe a company's efficiency of asset use and include variables like Cash Turnover Rate and Inventory Turnover Rate times. Cash Flow 
+
+- Turnover measures describe a company's efficiency of asset use and include variables like Cash Turnover Rate and Inventory Turnover Rate times. 
+
+Cash Flow 
+
 - Cash flow measures reflect the generation and allocatiion of cach within a company and include variables liek operting Cac Flow to Total Assets and Cash Current Liability. 
 
 <div style="text-align: center;">
@@ -141,7 +149,6 @@ After accounting for undefined correlation caused by zero-variance predictors, a
 ```{r}
 cor_matrix <- cor(train, use = "complete.obs")
 cor_response <- cor_matrix["Bankrupt.",]  # named vector
-cor_response
 
 # Table of top correlated vars to response
 data_frame(
@@ -164,14 +171,19 @@ sort(pvals)[1:15]
 To identify some early signs of variables important in predicting bankruptcy, we did both correlation analysis with the response variable and two sample t-tests. Some notable variables narrowed down from both results are as such: 
 
 Profitability measurement:
+
 - Net Income to Total Assets
+
 - ROA A/B/C before interest and after tax (these variables have high, near 1.0 correlation so either one of these variables could be selected)  
 
 Financial Leverage measurement:  
+
 - Debt ratio  
 
 Liquidity measurement:
+
 - Working Capital to Total Assets
+
 - Cash Total Assets  
 
 These early important variables include measures of profitability, leverage, and liquidity that are early signals of bankruptcy risk and may be important predictors later on. 
